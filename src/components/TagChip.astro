@@ -1,0 +1,11 @@
+---
+const { tag } = Astro.props;
+const t = String(tag);
+const c = (x) => ({
+  bitcoin: 'badge-bitcoin',
+  keto: 'badge-keto',
+  stats: 'badge-stats',
+  meditation: 'badge-meditation'
+}[x] ?? '');
+---
+<span class={`badge ${c(t.toLowerCase())}`}>{t}</span>

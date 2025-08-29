@@ -1,0 +1,31 @@
+---
+import "@/styles/tailwind.css";
+const { title = "Ethan Colgan", description = "Bitcoin • Keto • Stats • Meditation" } = Astro.props;
+---
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.ico" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen selection:bg-blue-500/25 selection:text-blue-50">
+    <div class="bg-glow"></div>
+    <header class="container py-6 flex items-center justify-between">
+      <a href="/" class="text-slate-100 font-semibold tracking-tight">ethancolgan.me</a>
+      <nav class="flex items-center gap-4 text-sm">
+        <a href="/blog" class="hover:text-blue-300">Blog</a>
+        <a href="/keto" class="hover:text-blue-300">Keto</a>
+        <a href="/bitcoin" class="hover:text-blue-300">Bitcoin</a>
+        <a href="/stats" class="hover:text-blue-300">Stats</a>
+      </nav>
+    </header>
+    <main class="container pb-20">
+      <slot />
+    </main>
+    <footer class="container pb-10 text-xs text-slate-500">
+      © {new Date().getFullYear()} Ethan Colgan
+    </footer>
+  </body>
+</html>

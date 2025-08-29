@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+
+/* Blue vibe */
+body {
+  @apply bg-slate-950 text-slate-200 bg-grain;
+}
+a { @apply text-slate-200; }
+a:hover { @apply text-blue-300; }
+.container { @apply mx-auto max-w-5xl px-4; }
+
+.card {
+  @apply relative rounded-2xl border border-slate-800/80 bg-slate-900/60
+         backdrop-blur-sm hover:border-slate-700/80 transition-shadow shadow-soft;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
+}
+.badge-bitcoin { @apply bg-amber-400/20 text-amber-300; }
+.badge-keto { @apply bg-emerald-400/20 text-emerald-300; }
+.badge-stats { @apply bg-cyan-300/20 text-cyan-200; }
+.badge-meditation { @apply bg-violet-300/20 text-violet-200; }
+
+.prose-custom { @apply prose prose-invert max-w-none; }
+.prose-custom a { @apply text-blue-300; }
+.prose-custom img {
+  @apply rounded-xl border border-slate-800 shadow-sm;
+}
+
+
+.bg-glow {
+  position: fixed; inset: -20vh; pointer-events: none; filter: blur(120px);
+  background:
+    radial-gradient(40% 40% at 60% 30%, rgba(59,130,246,.12), transparent 60%),
+    radial-gradient(35% 35% at 30% 70%, rgba(56,189,248,.10), transparent 60%);
+  z-index: -1;
+}

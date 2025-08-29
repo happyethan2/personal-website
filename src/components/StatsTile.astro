@@ -1,0 +1,17 @@
+---
+const { title, value, href } = Astro.props;
+---
+<details class="group card p-5">
+  <summary class="list-none cursor-pointer flex items-center justify-between">
+    <div>
+      <h4 class="text-sm text-slate-400">{title}</h4>
+      <div class="text-2xl font-semibold mt-1">{value}</div>
+    </div>
+    <div class="text-xs text-slate-400 group-open:hidden">Click for details</div>
+    <div class="text-xs text-slate-400 hidden group-open:block">Hide details</div>
+  </summary>
+  <div class="pt-4 mt-4 border-t border-slate-800">
+    <slot />
+    {href && <a class="inline-block mt-3 text-sm underline underline-offset-2 text-blue-300 hover:text-blue-200" href={href}>Open full report</a>}
+  </div>
+</details>

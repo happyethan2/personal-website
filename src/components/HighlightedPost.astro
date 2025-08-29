@@ -1,0 +1,18 @@
+---
+import TagChip from "@/components/TagChip.astro";
+import PostMeta from "@/components/PostMeta.astro";
+const { post } = Astro.props;
+const { data } = post;
+const href = post.slug ? `/blog/${post.slug}` : post.url;
+---
+<a href={href} class="block card p-6 hover:shadow-lg transition">
+  <div class="flex items-center gap-2 mb-2">
+    <PostMeta date={data.date} />
+    <span class="text-slate-700">•</span>
+    <div class="flex gap-1.5 flex-wrap">
+      {data.tags?.map((t) => <TagChip tag={t} />)}
+    </div>
+  </div>
+  <h3 class="text-xl font-semibold mb-1">{data.title}</h3>
+  <p class="text-slate-300">{data.description}</p>
+</a>

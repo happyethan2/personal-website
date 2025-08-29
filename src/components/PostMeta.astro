@@ -1,0 +1,6 @@
+---
+const { date } = Astro.props;
+const d = new Date(date);
+const formatted = isNaN(d.valueOf()) ? String(date) : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+---
+<time datetime={String(date)} class="text-xs text-slate-400">{formatted}</time>

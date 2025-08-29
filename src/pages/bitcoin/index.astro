@@ -1,0 +1,67 @@
+---
+export const prerender = false;
+
+import Base from "@/layouts/Base.astro";
+import { allPosts, applyQuery } from "@/lib/posts";
+import PostCard from "@/components/PostCard.astro";
+import HighlightedPost from "@/components/HighlightedPost.astro";
+
+const posts = await allPosts();
+const section = 'keto' /* or 'bitcoin' */;
+const items = posts.filter(p => p.data.tags?.map(t=>t.toLowerCase()).includes(section));
+
+const { searchParams, pathname } = Astro.url;
+const q    = searchParams.get('q')    ?? '';
+const sort = searchParams.get('sort') ?? 'date-desc';
+
+const filtered = applyQuery(items, { q, tag: '', sort });
+const intro = items.find(p => p.slug?.includes(`${section}-intro`)) ?? items[0];
+---
+
+<Base title="Bitcoin • Ethan Colgan" description="Notes on Bitcoin, custody, education, and tooling.">
+  <section class="py-6 space-y-2">
+    <h1 class="text-3xl font-semibold">Bitcoin</h1>
+    <p class="text-slate-400 text-base max-w-2xl">
+      Self-custody, education, and running infrastructure—core topics and ongoing notes.
+    </p>
+  </section>
+
+  {intro && (
+    <section class="mt-6">
+      <h2 class="text-lg text-slate-300 mb-2">Featured</h2>
+      <HighlightedPost post={intro} />
+    </section>
+  )}
+
+  <section class="mt-6 space-y-3">
+    <h3 class="text-slate-300">All Bitcoin posts</h3>
+    <form method="get" action={pathname} class="flex flex-wrap items-center gap-3 text-sm">
+      <input
+        name="q"
+        value={q}
+        placeholder="Search title..."
+        class="bg-slate-900 border border-slate-800 rounded px-2 py-1"
+        oninput="this.form.requestSubmit()"
+      />
+      <select
+        name="sort"
+        class="bg-slate-900 border border-slate-800 rounded px-2 py-1"
+        onchange="this.form.requestSubmit()"
+      >
+        <option value="date-desc" selected={sort==='date-desc'}>Newest</option>
+        <option value="date-asc"  selected={sort==='date-asc'}>Oldest</option>
+        <option value="name-az"   selected={sort==='name-az'}>Title A→Z</option>
+        <option value="name-za"   selected={sort==='name-za'}>Title Z→A</option>
+      </select>
+    </form>
+
+    {filtered.length === 0 ? (
+      <p class="text-slate-500 text-sm">No posts yet.</p>
+    ) : (
+      <ul class="space-y-4">
+        {filtered.map((p) => <li><PostCard post={p} /></li>)}
+      </ul>
+    )}
+
+  </section>
+</Base>

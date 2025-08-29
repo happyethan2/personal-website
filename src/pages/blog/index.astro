@@ -1,0 +1,32 @@
+---
+export const prerender = false;
+
+import Base from "@/layouts/Base.astro";
+import { allPosts, applyQuery, uniqueTags } from "@/lib/posts";
+import PostCard from "@/components/PostCard.astro";
+import FilterBar from "@/components/FilterBar.astro";
+
+const posts = await allPosts();
+const { searchParams, pathname } = Astro.url;
+const q    = searchParams.get('q')    ?? '';
+const tag  = searchParams.get('tag')  ?? '';
+const sort = searchParams.get('sort') ?? 'date-desc';
+
+const tags = uniqueTags(posts);
+const filtered = applyQuery(posts, { q, tag, sort });
+---
+<Base title="Blog • Ethan Colgan" description="All posts with filters.">
+  <section class="py-6 space-y-4">
+    <h1 class="text-3xl font-semibold">Blog</h1>
+
+    <FilterBar tags={tags} action={pathname} />
+
+    {filtered.length === 0 ? (
+      <p class="text-slate-500 text-sm">No posts yet.</p>
+    ) : (
+      <ul class="space-y-4">
+        {filtered.map((p) => <li><PostCard post={p} /></li>)}
+      </ul>
+    )}
+  </section>
+</Base>
