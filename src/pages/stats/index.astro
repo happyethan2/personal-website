@@ -5,6 +5,10 @@ import StatsTile from "@/components/StatsTile.astro";
 const meditationHours = 312;
 const avgKetone = 1.8;
 const postsThisYear = 12;
+
+if (import.meta.env.PROD) {
+  throw new Response("Not Found", { status: 404 });
+}
 ---
 <Base title="Stats • Ethan Colgan" description="High-level stats with drill-down details.">
   <section class="py-6 space-y-4">
