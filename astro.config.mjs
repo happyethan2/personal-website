@@ -3,7 +3,7 @@ import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import node from '@astrojs/node';
 
-const mode = process.env.ASTRO_ADAPTER_MODE || 'middleware';
+const mode = process.env.ASTRO_ADAPTER_MODE || 'standalone';
 
 export default defineConfig({
   output: 'server',
