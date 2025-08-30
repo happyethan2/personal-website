@@ -1,11 +1,26 @@
 import { getCollection } from 'astro:content';
 
+const toTime = (x:any) => x instanceof Date ? x.getTime() : new Date(x).getTime();
+
 export async function allPosts() {
   const posts = await getCollection('posts');
-  return posts.sort((a, b) => +b.data.date - +a.data.date);
+  const visible = import.meta.env.PROD ? posts.filter(p => !p.data.draft) : posts;
+  return visible.sort((a,b) => toTime(b.data.date) - toTime(a.data.date));
 }
 
-const toTime = (x:any) => x instanceof Date ? x.getTime() : new Date(x).getTime();
+export async function postsByTag(tag: string) {
+  const wanted = tag.toLowerCase();
+  const posts = await getCollection('posts', ({ data }) =>
+    (!import.meta.env.PROD || !data.draft) &&
+    (data.tags ?? []).some(t => t.toLowerCase() === wanted)
+  );
+  return posts.sort((a, b) => toTime(b.data.date) - toTime(a.data.date));
+}
+
+export async function latestPostByTag(tag: string) {
+  const list = await postsByTag(tag);
+  return list[0] ?? null;
+}
 
 export function applyQuery(posts, { q='', tag='', sort='date-desc' } = {}) {
   let out = [...posts];
@@ -19,7 +34,6 @@ export function applyQuery(posts, { q='', tag='', sort='date-desc' } = {}) {
   }
   return out;
 }
-
 
 export function uniqueTags(posts) {
   const set = new Set<string>();

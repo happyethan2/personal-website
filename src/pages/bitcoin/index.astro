@@ -7,7 +7,7 @@ import PostCard from "@/components/PostCard.astro";
 import HighlightedPost from "@/components/HighlightedPost.astro";
 
 const posts = await allPosts();
-const section = 'keto' /* or 'bitcoin' */;
+const section = 'bitcoin';
 const items = posts.filter(p => p.data.tags?.map(t=>t.toLowerCase()).includes(section));
 
 const { searchParams, pathname } = Astro.url;

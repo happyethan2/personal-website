@@ -1,13 +1,19 @@
 ---
+export const prerender = true;
+
 import Base from "@/layouts/Base.astro";
 import { getCollection } from "astro:content";
 import TagChip from "@/components/TagChip.astro";
 import PostMeta from "@/components/PostMeta.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("posts");
+  // Only include non-drafts when building for production
+  const posts = await getCollection('posts', ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true
+  );
+
   return posts.map((p) => ({
-    params: { slug: p.slug },   // <— string, not array
+    params: { slug: p.slug }, // string is correct
     props: { post: p },
   }));
 }

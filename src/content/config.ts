@@ -5,6 +5,7 @@ export const postSchema = z.object({
   description: z.string(),
   date: z.coerce.date(),
   tags: z.array(z.string()).default([]),
+  draft: z.boolean().default(false),  // lets me draft posts without them displaying live
 });
 
 const posts = defineCollection({
