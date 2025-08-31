@@ -23,7 +23,7 @@ const { data } = post;
 const { Content } = await post.render();
 ---
 <Base title={`${data.title} • Blog`} description={data.description}>
-  <article class="prose-custom">
+  <article class="prose-custom prose-p:text-justify">
     <h1 class="mb-1">{data.title}</h1>
     <div class="text-sm text-slate-400 mb-6 flex items-center gap-2">
       <PostMeta date={data.date} />
