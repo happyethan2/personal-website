@@ -159,13 +159,6 @@ declare module 'astro:content' {
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".mdx"] };
-"2025-07-24-keto-intro.mdx": {
-	id: "2025-07-24-keto-intro.mdx";
-  slug: "2025-07-24-keto-intro";
-  body: string;
-  collection: "posts";
-  data: InferEntrySchema<"posts">
-} & { render(): Render[".mdx"] };
 "2025-08-05-meditation-blocks.mdx": {
 	id: "2025-08-05-meditation-blocks.mdx";
   slug: "2025-08-05-meditation-blocks";
@@ -176,13 +169,6 @@ declare module 'astro:content' {
 "2025-08-10-stats-dash-idea.mdx": {
 	id: "2025-08-10-stats-dash-idea.mdx";
   slug: "2025-08-10-stats-dash-idea";
-  body: string;
-  collection: "posts";
-  data: InferEntrySchema<"posts">
-} & { render(): Render[".mdx"] };
-"2025-08-12-bitcoin-custody.mdx": {
-	id: "2025-08-12-bitcoin-custody.mdx";
-  slug: "2025-08-12-bitcoin-custody";
   body: string;
   collection: "posts";
   data: InferEntrySchema<"posts">
@@ -200,6 +186,29 @@ declare module 'astro:content' {
   body: string;
   collection: "posts";
   data: InferEntrySchema<"posts">
+} & { render(): Render[".mdx"] };
+"2025-08-30-keto-intro.mdx": {
+	id: "2025-08-30-keto-intro.mdx";
+  slug: "2025-08-30-keto-intro";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".mdx"] };
+"2025-08-31-bitcoin-custody.mdx": {
+	id: "2025-08-31-bitcoin-custody.mdx";
+  slug: "2025-08-31-bitcoin-custody";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".mdx"] };
+};
+"recipes": {
+"porterhouse-mushroom-sauce.mdx": {
+	id: "porterhouse-mushroom-sauce.mdx";
+  slug: "porterhouse-mushroom-sauce";
+  body: string;
+  collection: "recipes";
+  data: InferEntrySchema<"recipes">
 } & { render(): Render[".mdx"] };
 };
 

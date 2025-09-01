@@ -1,0 +1,21 @@
+---
+import MacroBar from './MacroBar.astro';
+
+const { href, title, kcal, fat_g, protein_g, carbs_g } = Astro.props as {
+  href: string;
+  title: string;
+  kcal: number;
+  fat_g: number;
+  protein_g: number;
+  carbs_g: number;
+};
+---
+<a href={href} class="card block p-4 hover:border-slate-700/80">
+  <div class="flex items-baseline justify-between gap-3">
+    <h3 class="text-sm font-medium text-slate-100">{title}</h3>
+    <span class="text-xs text-slate-400">{kcal} kcal</span>
+  </div>
+  <div class="mt-3">
+    <MacroBar calories_kcal={kcal} fat_g={fat_g} protein_g={protein_g} carbs_g={carbs_g} />
+  </div>
+</a>

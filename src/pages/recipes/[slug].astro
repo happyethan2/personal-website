@@ -1,0 +1,137 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEntryBySlug } from 'astro:content';
+import MacroBar from '../../components/MacroBar.astro';
+
+const { slug } = Astro.params;
+const recipe = await getEntryBySlug('recipes', slug);
+if (!recipe || recipe.data.draft) {
+  throw new Response("Not Found", { status: 404 });
+}
+const d = recipe.data;
+const total_mins = (d.prep_mins ?? 0) + (d.cook_mins ?? 0);
+---
+
+<Base title={`${d.title} • Recipe`}>
+  <a href="/recipes" class="text-sm text-cyan-400 hover:text-cyan-300 mt-6 inline-block">← All recipes</a>
+
+  <header class="space-y-6 mt-4">
+    <h1 class="text-3xl font-semibold">{d.title}</h1>
+    <p class="text-slate-300">{d.description}</p>
+
+    {d.image
+      ? (typeof d.image === 'string'
+          ? <img src={d.image} alt={d.title} class="w-full rounded-xl border border-slate-800" />
+          : <img src={d.image.src} alt={d.title} class="w-full rounded-xl border border-slate-800" />
+        )
+      : null}
+
+    <!-- Serves • kcal • Prep • Cook -->
+    <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+      <div class="rounded border border-slate-800 bg-slate-900/50 p-3">
+        <div class="text-slate-400">Serves</div>
+        <div class="font-medium">{d.servings}</div>
+      </div>
+      <div class="rounded border border-slate-800 bg-slate-900/50 p-3">
+        <div class="text-slate-400">kcal (per serving)</div>
+        <div class="font-medium">{d.calories_kcal}</div>
+      </div>
+      <div class="rounded border border-slate-800 bg-slate-900/50 p-3">
+        <div class="text-slate-400">Prep</div>
+        <div class="font-medium">{d.prep_mins} min</div>
+      </div>
+      <div class="rounded border border-slate-800 bg-slate-900/50 p-3">
+        <div class="text-slate-400">Cook</div>
+        <div class="font-medium">{d.cook_mins} min</div>
+      </div>
+    </section>
+
+    <section class="space-y-2">
+      <MacroBar
+        calories_kcal={d.calories_kcal}
+        fat_g={d.fat_g}
+        protein_g={d.protein_g}
+        carbs_g={d.carbs_g}
+      />
+    </section>
+  </header>
+
+  <!-- Ingredients first on mobile; split at lg -->
+  <section class="grid mt-8 lg:grid-cols-2 gap-10">
+    <div class="space-y-3">
+      <h2 class="text-xl font-semibold">Ingredients</h2>
+      <ul class="list-disc list-inside space-y-1 text-slate-200">
+        {d.ingredients.map((line) => <li>{line}</li>)}
+      </ul>
+    </div>
+
+    <div class="space-y-3">
+      <h2 class="text-xl font-semibold">Method</h2>
+      <ol class="list-decimal list-inside space-y-2 text-slate-200">
+        {d.method.map((step) => <li>{step}</li>)}
+      </ol>
+    </div>
+  </section>
+
+  {Object.keys(d.nutrition ?? {}).length > 0 && (
+    <section class="mt-10 space-y-6">
+        <h2 class="text-xl font-semibold">Key Nutrition (per serving)</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full table-auto text-sm border border-slate-800">
+            <!-- Left column fits content; right column expands -->
+            <colgroup>
+                <col class="w-[1%]" />
+                <col />
+            </colgroup>
+            <tbody>
+                {d.nutrition.sodium_mg !== undefined && (
+                <tr class="border-t border-slate-800">
+                    <th scope="row"
+                        class="bg-slate-900/60 px-3 py-2 text-slate-400 font-normal text-left whitespace-nowrap">
+                    Sodium
+                    </th>
+                    <td class="px-3 py-2">{d.nutrition.sodium_mg} mg</td>
+                </tr>
+                )}
+                {d.nutrition.potassium_mg !== undefined && (
+                <tr class="border-t border-slate-800">
+                    <th scope="row"
+                        class="bg-slate-900/60 px-3 py-2 text-slate-400 font-normal text-left whitespace-nowrap">
+                    Potassium
+                    </th>
+                    <td class="px-3 py-2">{d.nutrition.potassium_mg} mg</td>
+                </tr>
+                )}
+                {d.nutrition.magnesium_mg !== undefined && (
+                <tr class="border-t border-slate-800">
+                    <th scope="row"
+                        class="bg-slate-900/60 px-3 py-2 text-slate-400 font-normal text-left whitespace-nowrap">
+                    Magnesium
+                    </th>
+                    <td class="px-3 py-2">{d.nutrition.magnesium_mg} mg</td>
+                </tr>
+                )}
+                {d.nutrition.calcium_mg !== undefined && (
+                <tr class="border-t border-slate-800">
+                    <th scope="row"
+                        class="bg-slate-900/60 px-3 py-2 text-slate-400 font-normal text-left whitespace-nowrap">
+                    Calcium
+                    </th>
+                    <td class="px-3 py-2">{d.nutrition.calcium_mg} mg</td>
+                </tr>
+                )}
+                {d.nutrition.iron_mg !== undefined && (
+                <tr class="border-t border-slate-800">
+                    <th scope="row"
+                        class="bg-slate-900/60 px-3 py-2 text-slate-400 font-normal text-left whitespace-nowrap">
+                    Iron
+                    </th>
+                    <td class="px-3 py-2">{d.nutrition.iron_mg} mg</td>
+                </tr>
+                )}
+            </tbody>
+            </table>
+        </div>
+    </section>
+  )}
+</Base>

@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import RecipeTile from '../../components/RecipeTile.astro';
+
+const q = (Astro.url.searchParams.get('q') ?? '').trim().toLowerCase();
+
+const items = (await getCollection('recipes', ({ data }) => !data.draft))
+  .sort((a,b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .filter(r => q ? r.data.title.toLowerCase().includes(q) : true);
+---
+<Base title="Keto Recipes">
+  <header class="flex items-end justify-between gap-4 mt-6">
+    <a href="/keto" class="text-sm text-cyan-400 hover:text-cyan-300">← Back to Keto</a>
+    <form method="GET" class="w-56" action="/recipes">
+      <input
+        type="search"
+        name="q"
+        value={q}
+        placeholder="Search recipes…"
+        oninput="this.form.requestSubmit()"
+        class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+      />
+    </form>
+  </header>
+
+  <h1 class="text-2xl font-semibold mt-6">Keto Recipes</h1>
+
+  {items.length === 0 ? (
+    <p class="text-slate-400 text-sm mt-4">No recipes found{q && ` for “${q}”`}.</p>
+  ) : (
+    <div class="grid grid-cols-1 gap-3 mt-6">
+      {items.map(({ slug, data }) => (
+        <RecipeTile
+          href={`/recipes/${slug}`}
+          title={data.title}
+          kcal={data.calories_kcal}
+          fat_g={data.fat_g}
+          protein_g={data.protein_g}
+          carbs_g={data.carbs_g}
+        />
+      ))}
+    </div>
+  )}
+</Base>

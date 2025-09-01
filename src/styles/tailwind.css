@@ -39,3 +39,11 @@ a:hover { @apply text-blue-300; }
     radial-gradient(35% 35% at 30% 70%, rgba(56,189,248,.10), transparent 60%);
   z-index: -1;
 }
+
+@layer base {
+  /* Prevent horizontal layout shift when the vertical scrollbar appears */
+  html { scrollbar-gutter: stable; }
+  @supports not (scrollbar-gutter: stable) {
+    html { overflow-y: scroll; } /* fallback for older browsers */
+  }
+}

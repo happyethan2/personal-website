@@ -2,20 +2,19 @@ import { getCollection } from 'astro:content';
 
 const toTime = (x:any) => x instanceof Date ? x.getTime() : new Date(x).getTime();
 
+// AFTER: always hide drafts
 export async function allPosts() {
-  const posts = await getCollection('posts');
-  const visible = import.meta.env.PROD ? posts.filter(p => !p.data.draft) : posts;
-  return visible.sort((a,b) => toTime(b.data.date) - toTime(a.data.date));
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.sort((a,b)=> new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
 }
 
 export async function postsByTag(tag: string) {
-  const wanted = tag.toLowerCase();
   const posts = await getCollection('posts', ({ data }) =>
-    (!import.meta.env.PROD || !data.draft) &&
-    (data.tags ?? []).some(t => t.toLowerCase() === wanted)
+    !data.draft && (data.tags ?? []).includes(tag)
   );
-  return posts.sort((a, b) => toTime(b.data.date) - toTime(a.data.date));
+  return posts.sort((a,b)=> new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
 }
+
 
 export async function latestPostByTag(tag: string) {
   const list = await postsByTag(tag);

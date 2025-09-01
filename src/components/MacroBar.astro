@@ -1,0 +1,65 @@
+---
+const {
+  calories_kcal,
+  fat_g,
+  protein_g,
+  carbs_g,
+  showLabels = true,
+} = Astro.props as {
+  calories_kcal: number;
+  fat_g: number;
+  protein_g: number;
+  carbs_g: number;
+  showLabels?: boolean;
+};
+
+const eFat = fat_g * 9;
+const eProt = protein_g * 4;
+const eCarb = carbs_g * 4;
+const total = Math.max(eFat + eProt + eCarb, 1);
+
+const fatPct = Math.round((eFat / total) * 100);
+const protPct = Math.round((eProt / total) * 100);
+const carbPct = 100 - fatPct - protPct; // keeps sum=100
+---
+<div class="space-y-2">
+  <!-- distribution bar -->
+  <div class="w-full h-3 rounded overflow-hidden border border-slate-800 bg-slate-900 flex">
+    <div class="h-full bg-amber-500/80" style={`width:${fatPct}%`}>
+      {showLabels && fatPct >= 12 && (
+        <span class="text-[10px] leading-3 text-black/80 px-1">{fatPct}</span>
+      )}
+    </div>
+    <div class="h-full bg-emerald-500/80" style={`width:${protPct}%`}>
+      {showLabels && protPct >= 12 && (
+        <span class="text-[10px] leading-3 text-black/80 px-1">{protPct}</span>
+      )}
+    </div>
+    <div class="h-full bg-cyan-500/80" style={`width:${carbPct}%`}>
+      {showLabels && carbPct >= 12 && (
+        <span class="text-[10px] leading-3 text-black/80 px-1">{carbPct}</span>
+      )}
+    </div>
+  </div>
+
+  <!-- bold, visible summary -->
+  <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+    <span class="inline-flex items-center gap-2 text-sm">
+      <span class="w-2 h-2 rounded bg-amber-500"></span>
+      <span class="font-medium">Fat</span>
+      <span class="text-slate-300">{fatPct}% • {fat_g}g</span>
+    </span>
+    <span class="inline-flex items-center gap-2 text-sm">
+      <span class="w-2 h-2 rounded bg-emerald-500"></span>
+      <span class="font-medium">Protein</span>
+      <span class="text-slate-300">{protPct}% • {protein_g}g</span>
+    </span>
+    <span class="inline-flex items-center gap-2 text-sm">
+      <span class="w-2 h-2 rounded bg-cyan-500"></span>
+      <span class="font-medium">Carbs</span>
+      <span class="text-slate-300">{carbPct}% • {carbs_g}g</span>
+    </span>
+
+    <span class="ml-auto text-sm text-slate-400">{calories_kcal} kcal / serving</span>
+  </div>
+</div>

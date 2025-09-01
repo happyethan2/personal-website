@@ -7,13 +7,11 @@ import TagChip from "@/components/TagChip.astro";
 import PostMeta from "@/components/PostMeta.astro";
 
 export async function getStaticPaths() {
-  // Only include non-drafts when building for production
-  const posts = await getCollection('posts', ({ data }) =>
-    import.meta.env.PROD ? !data.draft : true
-  );
+  // Always hide drafts
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
 
   return posts.map((p) => ({
-    params: { slug: p.slug }, // string is correct
+    params: { slug: p.slug }, // slug is always a string
     props: { post: p },
   }));
 }
