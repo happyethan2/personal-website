@@ -6,3 +6,4 @@ dist/
 *.log
 _backup/
 zip-project.sh
+.astro/
