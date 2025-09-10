@@ -47,3 +47,49 @@ a:hover { @apply text-blue-300; }
     html { overflow-y: scroll; } /* fallback for older browsers */
   }
 }
+
+@layer components {
+  /* Ingredients: sleek custom bullets */
+  .ingredients-list { @apply space-y-2; }
+  .ingredients-list li { @apply relative pl-6 leading-6 text-slate-200; }
+  .ingredients-list li::before {
+    content: "";
+    position: absolute;
+    left: 0.35rem;   /* aligns dot with text */
+    top: 0.65rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgba(56,189,248,.9), rgba(59,130,246,.9)); /* sky→blue */
+    box-shadow: 0 0 0 2px rgba(255,255,255,.06); /* subtle ring */
+  }
+
+    /* Method: numbered “pills” centered per row */
+  .method-steps { counter-reset: step; } /* remove space-y here */
+
+  .method-steps li {
+    counter-increment: step;
+    @apply relative pl-12 leading-7 text-slate-200 py-3; /* vertical padding on the row */
+    min-height: 2.25rem; /* at least pill height */
+  }
+
+  .method-steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);              /* <-- centers the pill */
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    background-color: rgb(30 41 59);          /* slate-800 */
+    color: rgb(226 232 240);                  /* slate-200 */
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), inset 0 1px 0 rgba(0,0,0,.25);
+    font-weight: 600;
+    font-size: .9rem;
+  }
+
+  .method-steps li + li { @apply border-t border-white/5; } /* keep the divider, no extra pt */
+}

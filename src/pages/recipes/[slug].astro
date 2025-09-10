@@ -57,21 +57,23 @@ const total_mins = (d.prep_mins ?? 0) + (d.cook_mins ?? 0);
   </header>
 
   <!-- Ingredients first on mobile; split at lg -->
-  <section class="grid mt-8 lg:grid-cols-2 gap-10">
+    <!-- Ingredients first on mobile; split at lg -->
+    <section class="grid mt-8 lg:grid-cols-2 gap-10">
     <div class="space-y-3">
-      <h2 class="text-xl font-semibold">Ingredients</h2>
-      <ul class="list-disc list-inside space-y-1 text-slate-200">
+        <h2 class="text-xl font-semibold">Ingredients</h2>
+        <ul class="ingredients-list">
         {d.ingredients.map((line) => <li>{line}</li>)}
-      </ul>
+        </ul>
     </div>
 
     <div class="space-y-3">
-      <h2 class="text-xl font-semibold">Method</h2>
-      <ol class="list-decimal list-inside space-y-2 text-slate-200">
+        <h2 class="text-xl font-semibold">Method</h2>
+        <ol class="method-steps">
         {d.method.map((step) => <li>{step}</li>)}
-      </ol>
+        </ol>
     </div>
-  </section>
+    </section>
+
 
   {Object.keys(d.nutrition ?? {}).length > 0 && (
     <section class="mt-10 space-y-6">
