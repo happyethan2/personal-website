@@ -18,10 +18,37 @@ const items = (await getCollection('recipes', ({ data }) => !data.draft))
         name="q"
         value={q}
         placeholder="Search recipes…"
-        oninput="this.form.requestSubmit()"
-        class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+        class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
       />
     </form>
+
+    <script is:inline>
+    (() => {
+      const form = document.currentScript.previousElementSibling;
+      const list = document.getElementById('items');
+      if (!form || !list) return;
+
+      const debounce = (fn, ms=250) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+
+      async function updateList() {
+        const url = new URL(location.href);
+        const fd = new FormData(form);
+        url.search = new URLSearchParams(fd).toString();
+        list.setAttribute('aria-busy','true');
+        const res = await fetch(url.toString(), { credentials:'same-origin' });
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html,'text/html');
+        const fresh = doc.getElementById('items');
+        if (fresh) { list.innerHTML = fresh.innerHTML; history.replaceState(null,'',url); }
+        list.removeAttribute('aria-busy');
+      }
+
+      const debounced = debounce(updateList, 250);
+      form.addEventListener('input', (e) => { if (e.target.tagName==='INPUT') debounced(); });
+      console.log("Bound input handler", form);
+      form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
+    })();
+    </script>
   </header>
 
   <h1 class="text-2xl font-semibold mt-6">Keto Recipes</h1>
@@ -29,7 +56,7 @@ const items = (await getCollection('recipes', ({ data }) => !data.draft))
   {items.length === 0 ? (
     <p class="text-slate-400 text-sm mt-4">No recipes found{q && ` for “${q}”`}.</p>
   ) : (
-    <div class="grid grid-cols-1 gap-3 mt-6">
+    <div id="items" class="grid grid-cols-1 gap-3 mt-6">
       {items.map(({ slug, data }) => (
         <RecipeTile
           href={`/recipes/${slug}`}

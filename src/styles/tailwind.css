@@ -93,3 +93,7 @@ a:hover { @apply text-blue-300; }
 
   .method-steps li + li { @apply border-t border-white/5; } /* keep the divider, no extra pt */
 }
+
+@layer utilities {
+  #items[aria-busy="true"] { opacity: .6; transition: opacity .15s ease; }
+}

@@ -49,13 +49,8 @@ const intro = items.find(p => p.slug?.includes(`${section}-intro`)) ?? items[0];
         value={q}
         placeholder="Search title..."
         class="bg-slate-900 border border-slate-800 rounded px-2 py-1"
-        oninput="this.form.requestSubmit()"
       />
-      <select
-        name="sort"
-        class="bg-slate-900 border border-slate-800 rounded px-2 py-1"
-        onchange="this.form.requestSubmit()"
-      >
+      <select name="sort" class="bg-slate-900 border border-slate-800 rounded px-2 py-1">
         <option value="date-desc" selected={sort==='date-desc'}>Newest</option>
         <option value="date-asc"  selected={sort==='date-asc'}>Oldest</option>
         <option value="name-az"   selected={sort==='name-az'}>Title A→Z</option>
@@ -63,10 +58,39 @@ const intro = items.find(p => p.slug?.includes(`${section}-intro`)) ?? items[0];
       </select>
     </form>
 
+    <script is:inline>
+    (() => {
+      const form = document.currentScript.previousElementSibling;
+      const list = document.getElementById('items');
+      if (!form || !list) return;
+
+      const debounce = (fn, ms=250) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+
+      async function updateList() {
+        const url = new URL(location.href);
+        const fd = new FormData(form);
+        url.search = new URLSearchParams(fd).toString();
+        list.setAttribute('aria-busy','true');
+        const res = await fetch(url.toString(), { credentials:'same-origin' });
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html,'text/html');
+        const fresh = doc.getElementById('items');
+        if (fresh) { list.innerHTML = fresh.innerHTML; history.replaceState(null,'',url); }
+        list.removeAttribute('aria-busy');
+      }
+
+      const debounced = debounce(updateList, 250);
+      form.addEventListener('input', (e) => {
+        const el = e.target; if (el && (el.tagName==='INPUT' || el.tagName==='SELECT')) debounced();
+      });
+      form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
+    })();
+    </script>
+
     {filtered.length === 0 ? (
       <p class="text-slate-500 text-sm">No posts yet.</p>
     ) : (
-      <ul class="space-y-4">
+      <ul id="items" class="space-y-4">
         {filtered.map((p) => <li><PostCard post={p} /></li>)}
       </ul>
     )}

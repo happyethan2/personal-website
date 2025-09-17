@@ -24,7 +24,7 @@ const filtered = applyQuery(posts, { q, tag, sort });
     {filtered.length === 0 ? (
       <p class="text-slate-500 text-sm">No posts yet.</p>
     ) : (
-      <ul class="space-y-4">
+      <ul id="items" class="space-y-4">
         {filtered.map((p) => <li><PostCard post={p} /></li>)}
       </ul>
     )}
