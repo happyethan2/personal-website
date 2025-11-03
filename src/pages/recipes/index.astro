@@ -1,72 +1,119 @@
 ---
-import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-import RecipeTile from '../../components/RecipeTile.astro';
+import Base from "@/layouts/Base.astro";
+import { getCollection } from "astro:content";
+import RecipeTile from "@/components/RecipeTile.astro";
 
-const q = (Astro.url.searchParams.get('q') ?? '').trim().toLowerCase();
+const { pathname, searchParams } = Astro.url;
+const q = (searchParams.get("q") ?? "").trim().toLowerCase();
 
-const items = (await getCollection('recipes', ({ data }) => !data.draft))
-  .sort((a,b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
-  .filter(r => q ? r.data.title.toLowerCase().includes(q) : true);
+const recipes = (await getCollection("recipes", ({ data }) => !data.draft)).sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+);
+
+const filtered = q
+  ? recipes.filter((recipe) => recipe.data.title.toLowerCase().includes(q))
+  : recipes;
+
+const total = recipes.length;
 ---
-<Base title="Keto Recipes">
-  <header class="flex items-end justify-between gap-4 mt-6">
-    <a href="/keto" class="text-sm text-cyan-400 hover:text-cyan-300">← Back to Keto</a>
-    <form method="GET" class="w-56" action="/recipes">
-      <input
-        type="search"
-        name="q"
-        value={q}
-        placeholder="Search recipes…"
-        class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-      />
-    </form>
+<Base title="Recipes - Ethan Colgan" description="Macro-friendly meals paired with ongoing experiments.">
+  <section class="py-8 space-y-8">
+    <header class="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div class="space-y-4">
+          <p class="text-sm font-semibold uppercase tracking-wide text-blue-300/80">Recipes</p>
+          <h1 class="text-3xl font-semibold text-slate-100">Fuel for the experiments</h1>
+          <p class="text-slate-300 max-w-2xl">
+            Macro-friendly meals that keep the experiments running. Every recipe includes the full macro breakdown so it is easy to track and adapt.
+          </p>
+          <p class="text-xs uppercase tracking-wide text-slate-500">{total} recipes and counting.</p>
+        </div>
+        <form method="GET" action={pathname} class="w-full max-w-xs">
+          <label class="block text-xs uppercase tracking-wide text-slate-500 mb-2" for="recipe-search">
+            Search recipes
+          </label>
+          <input
+            id="recipe-search"
+            type="search"
+            name="q"
+            value={q}
+            placeholder="Try butter chicken..."
+            class="w-full rounded border border-slate-800 bg-slate-900 px-3 py-2 text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          />
+        </form>
 
-    <script is:inline>
-    (() => {
-      const form = document.currentScript.previousElementSibling;
-      const list = document.getElementById('items');
-      if (!form || !list) return;
+        <script is:inline>
+          (() => {
+            const form = document.currentScript.previousElementSibling;
+            const list = document.getElementById("items");
+            const status = document.getElementById("recipes-status");
+            if (!form || !list || !status) return;
 
-      const debounce = (fn, ms=250) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+            const debounce = (fn, ms = 250) => {
+              let t;
+              return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), ms);
+              };
+            };
 
-      async function updateList() {
-        const url = new URL(location.href);
-        const fd = new FormData(form);
-        url.search = new URLSearchParams(fd).toString();
-        list.setAttribute('aria-busy','true');
-        const res = await fetch(url.toString(), { credentials:'same-origin' });
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html,'text/html');
-        const fresh = doc.getElementById('items');
-        if (fresh) { list.innerHTML = fresh.innerHTML; history.replaceState(null,'',url); }
-        list.removeAttribute('aria-busy');
-      }
+            async function updateList() {
+              const url = new URL(location.href);
+              const fd = new FormData(form);
+              url.search = new URLSearchParams(fd).toString();
+              list.setAttribute("aria-busy", "true");
+              const res = await fetch(url.toString(), { credentials: "same-origin" });
+              const html = await res.text();
+              const doc = new DOMParser().parseFromString(html, "text/html");
+              const freshList = doc.getElementById("items");
+              const freshStatus = doc.getElementById("recipes-status");
+              if (freshList && freshStatus) {
+                list.innerHTML = freshList.innerHTML;
+                status.textContent = freshStatus.textContent;
+                history.replaceState(null, "", url);
+              }
+              list.removeAttribute("aria-busy");
+            }
 
-      const debounced = debounce(updateList, 250);
-      form.addEventListener('input', (e) => { if (e.target.tagName==='INPUT') debounced(); });
-      console.log("Bound input handler", form);
-      form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
-    })();
-    </script>
-  </header>
+            const handle = debounce(updateList, 250);
+            form.addEventListener("input", (event) => {
+              const el = event.target;
+              if (el && el.tagName === "INPUT") handle();
+            });
+            form.addEventListener("submit", (event) => {
+              event.preventDefault();
+              updateList();
+            });
+          })();
+        </script>
+      </div>
+    </header>
 
-  <h1 class="text-2xl font-semibold mt-6">Keto Recipes</h1>
-
-  {items.length === 0 ? (
-    <p class="text-slate-400 text-sm mt-4">No recipes found{q && ` for “${q}”`}.</p>
-  ) : (
-    <div id="items" class="grid grid-cols-1 gap-3 mt-6">
-      {items.map(({ slug, data }) => (
-        <RecipeTile
-          href={`/recipes/${slug}`}
-          title={data.title}
-          kcal={data.calories_kcal}
-          fat_g={data.fat_g}
-          protein_g={data.protein_g}
-          carbs_g={data.carbs_g}
-        />
-      ))}
+    <div id="recipes-status" class="text-sm text-slate-400">
+      {filtered.length === total
+        ? `Showing all ${total} recipes.`
+        : filtered.length === 0
+          ? q
+            ? `No recipes found for "${q}".`
+            : "No recipes yet."
+          : `Showing ${filtered.length} of ${total} recipes${q ? ` for "${q}".` : "."}`}
     </div>
-  )}
+
+    {filtered.length === 0 ? (
+      <p class="text-slate-400 text-sm">Nothing matched that search just yet.</p>
+    ) : (
+      <div id="items" class="grid grid-cols-1 gap-3">
+        {filtered.map(({ slug, data }) => (
+          <RecipeTile
+            href={`/recipes/${slug}`}
+            title={data.title}
+            kcal={data.calories_kcal}
+            fat_g={data.fat_g}
+            protein_g={data.protein_g}
+            carbs_g={data.carbs_g}
+          />
+        ))}
+      </div>
+    )}
+  </section>
 </Base>

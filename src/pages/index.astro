@@ -2,22 +2,22 @@
 import Base from "@/layouts/Base.astro";
 import { allPosts } from "@/lib/posts";
 import HighlightedPost from "@/components/HighlightedPost.astro";
+
 const posts = await allPosts();
 const latest = posts[0];
 ---
-<Base title="Home • Ethan Colgan" description="Bitcoin • Keto • Stats • Meditation">
+<Base title="Home - Ethan Colgan" description="Writing, nutrition experiments, and self-tracking notes.">
   <section class="py-10">
     <h1 class="text-5xl font-semibold tracking-tight">
       <span class="bg-gradient-to-r from-slate-50 to-blue-300 bg-clip-text text-transparent">Hey, I'm Ethan.</span>
     </h1>
     <p class="mt-4 text-slate-400 max-w-2xl">
-      Notes on Bitcoin, Keto, and all else interesting. This is like a public journal. I hope you enjoy reading :)
+      Notes on building a deliberate life. Long-form writing now lives on the blog, the recipes catalogue the fuel that keeps me going, and the stats page follows the experiments.
     </p>
     <div class="mt-6 flex gap-3 flex-wrap">
       <a href="/blog" class="rounded-lg bg-slate-900/70 px-4 py-2 hover:bg-slate-800">Read the blog</a>
+      <a href="/recipes" class="rounded-lg bg-slate-900/70 px-4 py-2 hover:bg-slate-800">Recipes</a>
       <a href="/stats" class="rounded-lg bg-slate-900/70 px-4 py-2 hover:bg-slate-800">Stats</a>
-      <a href="/keto" class="rounded-lg bg-slate-900/70 px-4 py-2 hover:bg-slate-800">Keto</a>
-      <a href="/bitcoin" class="rounded-lg bg-slate-900/70 px-4 py-2 hover:bg-slate-800">Bitcoin</a>
     </div>
   </section>
 

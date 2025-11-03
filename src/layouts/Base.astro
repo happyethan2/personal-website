@@ -1,6 +1,16 @@
 ---
 import "@/styles/tailwind.css";
-const { title = "Ethan Colgan", description = "Bitcoin • Keto • Stats • Meditation" } = Astro.props;
+const {
+  title = "Ethan Colgan",
+  description = "Writing on health, technology, and the experiments in between.",
+} = Astro.props;
+
+const { pathname } = Astro.url;
+const navLinks = [
+  { href: "/blog", label: "Blog" },
+  { href: "/recipes", label: "Recipes" },
+  { href: "/stats", label: "Stats" },
+];
 ---
 <html lang="en" class="scroll-smooth">
   <head>
@@ -15,17 +25,25 @@ const { title = "Ethan Colgan", description = "Bitcoin • Keto • Stats • Me
     <header class="container py-6 flex items-center justify-between">
       <a href="/" class="text-slate-100 font-semibold tracking-tight">ethancolgan.me</a>
       <nav class="flex items-center gap-4 text-sm">
-        <a href="/blog" class="hover:text-blue-300">Blog</a>
-        <a href="/keto" class="hover:text-blue-300">Keto</a>
-        <a href="/bitcoin" class="hover:text-blue-300">Bitcoin</a>
-        <a href="/stats" class="hover:text-blue-300">Stats</a>
+        {navLinks.map(({ href, label }) => (
+          <a
+            href={href}
+            class:list={{
+              "hover:text-blue-300 transition-colors": true,
+              "text-blue-300": pathname.startsWith(href),
+              "text-slate-400": !pathname.startsWith(href),
+            }}
+          >
+            {label}
+          </a>
+        ))}
       </nav>
     </header>
     <main class="container pb-20">
       <slot />
     </main>
     <footer class="container pb-10 text-xs text-slate-500">
-      © {new Date().getFullYear()} Ethan Colgan
+      &copy; {new Date().getFullYear()} Ethan Colgan
     </footer>
   </body>
 </html>
