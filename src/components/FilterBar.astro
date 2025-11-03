@@ -26,8 +26,8 @@ const sort = searchParams.get('sort') ?? 'date-desc';
   <select name="sort" class="bg-slate-900 border border-slate-800 rounded px-2 py-1">
     <option value="date-desc" selected={sort==='date-desc'}>Newest</option>
     <option value="date-asc"  selected={sort==='date-asc'}>Oldest</option>
-    <option value="name-az"   selected={sort==='name-az'}>Title A–Z</option>
-    <option value="name-za"   selected={sort==='name-za'}>Title Z–A</option>
+    <option value="name-az"   selected={sort==='name-az'}>Title A&#8594;Z</option>
+    <option value="name-za"   selected={sort==='name-za'}>Title Z&#8594;A</option>
   </select>
 </form>
 

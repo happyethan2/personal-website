@@ -7,25 +7,20 @@ import TagChip from "@/components/TagChip.astro";
 import PostMeta from "@/components/PostMeta.astro";
 
 export async function getStaticPaths() {
-  // Always hide drafts
   const posts = await getCollection("posts", ({ data }) => !data.draft);
-
-  return posts.map((p) => ({
-    params: { slug: p.slug }, // slug is always a string
-    props: { post: p },
-  }));
+  return posts.map((p) => ({ params: { slug: p.slug }, props: { post: p } }));
 }
 
 const { post } = Astro.props;
 const { data } = post;
 const { Content } = await post.render();
 ---
-<Base title={`${data.title} • Blog`} description={data.description}>
+<Base title={`${data.title} - Blog`} description={data.description}>
   <article class="prose-custom prose-p:text-justify">
     <h1 class="mb-1">{data.title}</h1>
     <div class="text-sm text-slate-400 mb-6 flex items-center gap-2">
       <PostMeta date={data.date} />
-      <span class="text-slate-700">•</span>
+      <span class="text-slate-700">|</span>
       <div class="flex gap-1.5 flex-wrap">
         {data.tags?.map((t) => <TagChip tag={t} />)}
       </div>

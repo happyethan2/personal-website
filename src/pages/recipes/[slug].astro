@@ -46,8 +46,8 @@ const nutritionRows = KEYS.map((k) => {
 }).filter(Boolean);
 ---
 
-<Base title={`${d.title} • Recipe`}>
-  <a href="/recipes" class="text-sm text-cyan-400 hover:text-cyan-300 mt-6 inline-block">← All recipes</a>
+<Base title={`${d.title} - Recipe`}>
+  <a href="/recipes" class="text-sm text-cyan-400 hover:text-cyan-300 mt-6 inline-block">All recipes</a>
 
   <header class="space-y-6 mt-4">
     <h1 class="text-3xl font-semibold">{d.title}</h1>
@@ -60,7 +60,6 @@ const nutritionRows = KEYS.map((k) => {
         )
       : null}
 
-    <!-- Serves • kcal • Prep • Cook -->
     <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
       <div class="rounded border border-slate-800 bg-slate-900/50 p-3">
         <div class="text-slate-400">Serves</div>
@@ -90,7 +89,6 @@ const nutritionRows = KEYS.map((k) => {
     </section>
   </header>
 
-  <!-- Ingredients first on mobile; split at lg -->
   <section class="grid mt-8 lg:grid-cols-2 gap-10">
     <div class="space-y-3">
       <h2 class="text-xl font-semibold">Ingredients</h2>

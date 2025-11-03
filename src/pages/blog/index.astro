@@ -15,7 +15,7 @@ const sort = searchParams.get('sort') ?? 'date-desc';
 const tags = uniqueTags(posts);
 const filtered = applyQuery(posts, { q, tag, sort });
 ---
-<Base title="Blog – Ethan Colgan" description="All posts with filters.">
+<Base title="Blog - Ethan Colgan" description="All posts with filters.">
   <section class="py-6 space-y-4">
     <h1 class="text-3xl font-semibold">Blog</h1>
 
@@ -30,4 +30,3 @@ const filtered = applyQuery(posts, { q, tag, sort });
     )}
   </section>
 </Base>
-

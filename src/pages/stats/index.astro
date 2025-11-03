@@ -10,12 +10,12 @@ if (import.meta.env.PROD) {
   throw new Response("Not Found", { status: 404 });
 }
 ---
-<Base title="Stats • Ethan Colgan" description="High-level stats with drill-down details.">
+<Base title="Stats - Ethan Colgan" description="High-level stats with drill-down details.">
   <section class="py-6 space-y-4">
     <h1 class="text-3xl font-semibold">Stats</h1>
     <p class="text-slate-400 max-w-2xl">A living dashboard of metrics. Click tiles to open details.</p>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <StatsTile title="Meditation — total hours" value={`${meditationHours} h`}>
+      <StatsTile title="Meditation total hours" value={`${meditationHours} h`}>
         <p class="text-sm text-slate-400">Over time</p>
         <div class="mt-3 rounded-lg border border-slate-800 p-3">
           <svg viewBox="0 0 100 40" class="w-full h-28">
