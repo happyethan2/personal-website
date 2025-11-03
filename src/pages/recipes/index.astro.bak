@@ -44,45 +44,46 @@ const total = recipes.length;
 
         <script is:inline>
           (() => {
-            const script = document.currentScript;
-            const form = script.previousElementSibling;
-            async function init() {
-              if (!form) return;
-              if (document.readyState === 'loading') {
-                await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+            const form = document.currentScript.previousElementSibling;
+            const list = document.getElementById("items");
+            const status = document.getElementById("recipes-status");
+            if (!form || !list || !status) return;
+
+            const debounce = (fn, ms = 250) => {
+              let t;
+              return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), ms);
+              };
+            };
+
+            async function updateList() {
+              const url = new URL(location.href);
+              const fd = new FormData(form);
+              url.search = new URLSearchParams(fd).toString();
+              list.setAttribute("aria-busy", "true");
+              const res = await fetch(url.toString(), { credentials: "same-origin" });
+              const html = await res.text();
+              const doc = new DOMParser().parseFromString(html, "text/html");
+              const freshList = doc.getElementById("items");
+              const freshStatus = doc.getElementById("recipes-status");
+              if (freshList && freshStatus) {
+                list.innerHTML = freshList.innerHTML;
+                status.textContent = freshStatus.textContent;
+                history.replaceState(null, "", url);
               }
-              const list = document.getElementById('items');
-              const status = document.getElementById('recipes-status');
-              if (!list || !status) return;
-
-              const debounce = (fn, ms = 250) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-
-              async function updateList() {
-                const url = new URL(location.href);
-                const fd = new FormData(form);
-                url.search = new URLSearchParams(fd).toString();
-                list.setAttribute('aria-busy', 'true');
-                const res = await fetch(url.toString(), { credentials: 'same-origin' });
-                const html = await res.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const freshList = doc.getElementById('items');
-                const freshStatus = doc.getElementById('recipes-status');
-                if (freshList && freshStatus) {
-                  list.innerHTML = freshList.innerHTML;
-                  status.textContent = freshStatus.textContent;
-                  history.replaceState(null, '', url);
-                }
-                list.removeAttribute('aria-busy');
-              }
-
-              const debounced = debounce(updateList, 250);
-              form.addEventListener('input', (e) => {
-                const el = e.target; if (el && el.tagName === 'INPUT') debounced();
-              }, { passive: true });
-              form.addEventListener('search', updateList);
-              form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
+              list.removeAttribute("aria-busy");
             }
-            init();
+
+            const handle = debounce(updateList, 250);
+            form.addEventListener("input", (event) => {
+              const el = event.target;
+              if (el && el.tagName === "INPUT") handle();
+            });
+            form.addEventListener("submit", (event) => {
+              event.preventDefault();
+              updateList();
+            });
           })();
         </script>
       </div>

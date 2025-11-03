@@ -1,6 +1,6 @@
 ---
 /**
- * FilterBar.astro â€” async, debounced fetch+swap
+ * FilterBar: async filtering that initializes after DOM is ready.
  */
 const { tags = [], action = Astro.url.pathname, targetId = "items" } = Astro.props;
 const { searchParams } = Astro.url;
@@ -11,6 +11,7 @@ const sort = searchParams.get('sort') ?? 'date-desc';
 ---
 <form method="get" action={action} data-target={targetId} class="flex flex-wrap items-center gap-3 text-sm">
   <input
+    type="search"
     name="q"
     value={q}
     placeholder="Search title..."
@@ -25,46 +26,55 @@ const sort = searchParams.get('sort') ?? 'date-desc';
   <select name="sort" class="bg-slate-900 border border-slate-800 rounded px-2 py-1">
     <option value="date-desc" selected={sort==='date-desc'}>Newest</option>
     <option value="date-asc"  selected={sort==='date-asc'}>Oldest</option>
-    <option value="name-az"   selected={sort==='name-az'}>Title Aâ†’Z</option>
-    <option value="name-za"   selected={sort==='name-za'}>Title Zâ†’A</option>
+    <option value="name-az"   selected={sort==='name-az'}>Title A–Z</option>
+    <option value="name-za"   selected={sort==='name-za'}>Title Z–A</option>
   </select>
 </form>
 
 <script is:inline>
 (() => {
-  const form =
-    document.currentScript.previousElementSibling?.tagName === 'FORM'
-      ? document.currentScript.previousElementSibling
-      : document.currentScript.closest('form');
+  const script = document.currentScript;
+  const form = script.previousElementSibling?.tagName === 'FORM' ? script.previousElementSibling : script.closest('form');
   if (!form) return;
 
   const targetId = form.getAttribute('data-target') || 'items';
-  const list = document.getElementById(targetId);
-  if (!list) return;
 
-  const debounce = (fn, ms=250) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+  function init() {
+    const list = document.getElementById(targetId);
+    if (!list) return false; // wait for DOM to include target
 
-  async function updateList() {
-    const url = new URL(location.href);
-    const fd = new FormData(form);
-    url.search = new URLSearchParams(fd).toString();
-    list.setAttribute('aria-busy','true');
-    const res = await fetch(url.toString(), { credentials:'same-origin' });
-    const html = await res.text();
-    const doc = new DOMParser().parseFromString(html,'text/html');
-    const fresh = doc.getElementById(targetId);
-    if (fresh) {
-      list.innerHTML = fresh.innerHTML;
-      history.replaceState(null,'',url);
+    const debounce = (fn, ms=250) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+
+    async function updateList() {
+      const url = new URL(location.href);
+      const fd = new FormData(form);
+      url.search = new URLSearchParams(fd).toString();
+      list.setAttribute('aria-busy','true');
+      const res = await fetch(url.toString(), { credentials:'same-origin' });
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html,'text/html');
+      const fresh = doc.getElementById(targetId);
+      if (fresh) {
+        list.innerHTML = fresh.innerHTML;
+        history.replaceState(null,'',url);
+      }
+      list.removeAttribute('aria-busy');
     }
-    list.removeAttribute('aria-busy');
+
+    const debounced = debounce(updateList, 250);
+    form.addEventListener('input', (e) => { const el = e.target; if (el && el.tagName === 'INPUT') debounced(); }, { passive: true });
+    form.addEventListener('change', (e) => { const el = e.target; if (el && el.tagName === 'SELECT') updateList(); });
+    form.addEventListener('search', updateList);
+    form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
+    return true;
   }
 
-  const debounced = debounce(updateList, 250);
-  form.addEventListener('input', (e) => {
-    const el = e.target;
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT')) debounced();
-  });
-  form.addEventListener('submit', (e) => { e.preventDefault(); updateList(); });
+  if (!init()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => init(), { once: true });
+    } else {
+      setTimeout(() => init(), 0);
+    }
+  }
 })();
 </script>
