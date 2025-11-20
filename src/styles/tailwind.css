@@ -52,6 +52,7 @@ a:hover { @apply text-blue-300; }
   /* Ingredients: sleek custom bullets */
   .ingredients-list { @apply space-y-2; }
   .ingredients-list li { @apply relative pl-6 leading-6 text-slate-200; }
+  
   .ingredients-list li::before {
     content: "";
     position: absolute;
@@ -92,6 +93,8 @@ a:hover { @apply text-blue-300; }
   }
 
   .method-steps li + li { @apply border-t border-white/5; } /* keep the divider, no extra pt */
+
+  .center-inline { @apply text-center my-6; } /* allows custom elements in mdx posts to be centred */
 }
 
 @layer utilities {
