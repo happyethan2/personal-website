@@ -1,4 +1,4 @@
-# Personal Website — Blue Vibe Starter (Astro v4 + Tailwind)
+# Personal Website — Dark Blue Theme (Astro v4 + Tailwind)
 
 - Blue-focused theme (less cyan), grain + glow, soft cards.
 - Blog/Keto/Bitcoin show **stacked** post cards.
@@ -8,8 +8,6 @@
   - Filter by tag (Blog page)
   - Sort by date/name (all lists)
   - No apply button (auto-submit via `requestSubmit()`)
-- Keto/Bitcoin keep intro + **Featured** post at top.
-- Stats page provides tiles with drill-down placeholders.
 
 Run:
 
@@ -19,3 +17,9 @@ npm run dev
 ```
 
 Safe overwrite: keep your `.git/` and any custom `.github/` workflows; reinstall deps after copying.
+
+To pull changes from remote and update the server hosted content, run (on the server):
+
+```bash
+~/apps/personal-website/deploy.sh
+```

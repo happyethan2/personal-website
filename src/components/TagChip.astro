@@ -5,7 +5,8 @@ const c = (x) => ({
   bitcoin: 'badge-bitcoin',
   keto: 'badge-keto',
   stats: 'badge-stats',
-  meditation: 'badge-meditation'
+  meditation: 'badge-meditation',
+  economics: 'badge-economics'
 }[x] ?? '');
 ---
 <span class={`badge ${c(t.toLowerCase())}`}>{t}</span>

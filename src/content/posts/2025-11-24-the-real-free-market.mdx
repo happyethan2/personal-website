@@ -1,0 +1,307 @@
+---
+title: "The Real Free Market"
+description: "Exploring the difference between state-controlled sound money and decentralised sound money."
+date: "2025-11-24"
+tags: ["Economics"]
+draft: true
+---
+
+## Introduction
+
+As modern life continually engrosses us in a network of endless information (the internet), it becomes progressively difficult to discern between what is and isn’t true. The sheer volume of misinformation crowds out the truth as our population loses their faculty of patience and focus required to verify knowledge they judge as valuable. The impact of this is that our minds are overwhelmed with noise, fracturing clarity and consensus. We agree less on what’s true, not because truth is scarce, but because our capacity to filter it from noise becomes increasingly challenging.
+
+There’s a beautiful analogy I would like to use as a segue into the main topic of discussion. The Bitcoin network stores pending transactions in what’s known as the “mempool”, a persistent and ever-changing pool of transactions awaiting approval (block inclusion) by miners. In much the same way that miners have a choice over which transactions to include (and therefore mine) in the next block, we have every choice over which piece knowledge we choose to verify next. The key here is that miners pick transactions based on which ones offer the highest fees, whereas we decide what ideas to verify based on how much value we assess the associated knowledge to carry. These decentralised processes naturally converge on truth.
+
+Today, I find myself grappling with uncertainty surrounding the ever-contentious OP_RETURN debate that’s recently divided the Bitcoin community. This is a good example of opposing ideas/views that I’ve personally appraised as providing significant value should the truth be discerned. Before I say anything more, I think it’s important to recognise a bias we have: to categorise observations we make that might otherwise be suited to a continuum. For example, we often diagnose psychiatric behaviours as falling into specific categories, whereas reality might present such behaviours on a continuous spectrum of behaviour. Regarding OP_RETURN, there might not be a right or wrong, but rather the truth might materialise as a mixture of ideals offered by both sides.
+
+
+---
+
+## Background
+
+To understand this debate, it’s necessary to explore several technical foundations.
+
+### Bitcoin Transaction Structure
+
+#### Witness vs Non-Witness Data
+
+We’ll start by defining what witness data is. The total amount of data allowed into a single transaction is made up of witness data and non-witness data. Prior to the SegWit upgrade (2017), these two types of data shared the same space. The upgrade is beyond the scope of this article, but it ultimately increased block-size capacity and processing times while potentially lowering network fees. 
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/segwit-before-and-after.png" alt="Mempool" />
+  <figcaption>Figure 1 — Bitcoin Transaction Before & After SegWit</figcaption>
+</figure>
+
+When transacting with Bitcoin, you’ll typically construct the transaction yourself (using special software) and then broadcast it to the network using some internet connected node. When constructing the transaction you must specify from which address you wish to move some amount of Bitcoin to some recipient address. Witness data is simply the part of that transaction that other network nodes use to verify your authority to move the bitcoin from that address in the first place. You prove this by digitally “signing” the transaction using your private key. Think of this like the key to your gold vault, because if you lose it, your gold is worthless. Non-witness data on the other hand, consists of all the other essential transaction components that define the movement of value on the network. It includes:
+-	Transaction version: a field indicating which rules the transaction follows
+-	Input data: pointers (memory location) to the UTXOs being used in this transaction
+-	Output data: the new UTXOs being created, including the value of and destination addresses
+-	Locktime: optional field specifying a block-height (time) before which the transaction can’t be added to a block (verified)
+
+### UTXOs and the UTXO Set
+
+UTXOs are crucial to understand moving forward. Firstly, UTXO is shorthand for **unspent transaction output**. To explain, lets begin with an analogy: suppose you have a $2 coin and want to buy something for $0.50. Your coin would be considered an **input** in a transaction that procudes two **outputs**, namely, the $0.50 you send to the recipent, and the $1.50 you recieve as change. A UTXO is precisely one of these transaction outputs. The $2 you started with which became the input is also considered a UTXO from a previous transaction. To solidify this idea, Adelaide man Daniel Piotrowski once attempted to pay a $60 parking fine with 5&cent; coins by pouring them onto the desk of some poor receptionist. Piotrowski would've visited the bank and converted $60 worth of currency into 5&cent; pieces. The analogy here is that on the Bitcoin network, he would've started with either a single UTXO worth $60, or used multiple UTXOs to the sum of $60 as his transaction input. He then created 1200 output UTXOs (one for each 5&cent; piece) and sent them all to the same recipient in a single transaction. Now of course, doing so will incur a large fee as adding more outputs increases the overall size (in bytes) of the transaction. Ultimately, Piotrowski is a dickhead, and his fine remained outstanding while his money was kept in the safe.
+
+The UTXO set is simply the total number of UTXOs in circulation. This set can be thought of as the total circulating supply of Bitcoin because each UTXO is essentially its own coin with any possible value. When a UTXO is spent, it’s removed from the UTXO set and new UTXOs are created as outputs maintaining the total supply. In this sense, the UTXO set is constantly growing due to the nature of splitting UTXOs into multiple outputs which pay recipients, transaction fees, and return change. There are currently ~166 million UTXOs and a circulating supply of 19.9 million bitcoin at the time of writing (8.34 UTXOs per bitcoin).
+
+### Weight Units, Fees, and Block Limits
+
+Now we can revisit this idea of a weight unit (WU). We said earlier that the total amount of data allowed in a single Bitcoin transaction was 400WU. Weight units were introduced with the Seg-Wit upgrade (2017) to differentiate between regular transaction data and the less-resource intensive witness data we discussed earlier. Regular transaction data “costs” 4 weight units per byte, whereas witness data only “costs” 1 weight unit per byte.
+Regular transaction data has a high weight (4WU) because it comprises of input UTXOs and output UTXOs that impact the network’s global UTXO set. Your transaction will require all full nodes to remove spent UTXOs (inputs), add newly created UTXOs (outputs), and maintain the existing UTXO set on disk. Because the UTXO set grows over time, it requires ongoing disk space, memory, and processing power from all full nodes to access and update. Witness transaction data has a low weight (1WU) because a node only needs to use it once to verify your transaction. It’s not added to the perpetually maintained UTXO set and rather sits in the archival blockchain record, imposing a lower ongoing burden on network nodes compared to non-witness (regular) transaction data.
+
+Below is an example taken from the Bitcoin blockchain at the time of writing. The four blue blocks are the most recently mined blocks, and the green one is the predicted next block:
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/mempool-dot-space.png" alt="Mempool" />
+  <figcaption>Figure 2 — Recently Mined Blocks (2025-11-18)</figcaption>
+</figure>
+
+Notice that fees are calculated in sats per virtual byte (sats/vB). Virtual bytes are related to standard bytes through weight units:
+
+<div className="not-prose center-inline">
+  1 vbyte = 4 weight units (WU)
+</div>
+
+To give an example, a typical P2WPKH transaction (1 input, 2 outputs) has an average size of ~200vB. The current market rate for transaction fees is 4-5 sats/vB. Assuming a SegWit transaction, **non-witness** data might be 116 bytes, and **witness** data might be 110 bytes (total of 226 bytes). The weight multiplier is applied to the non-witness data to give 116&times;4 = 464WU. The weight multiplier for witness data is 1, so we have 110&times;1 = 110WU. Add these together to get 464WU (non-witness) + 110WU (witness) = 574WU (total). Now convert to vBytes using the relationship above to give 574/4 = 143.5 vbytes. Given current fees of ~4.5 sats/vB, the transaction will cost 143.5*4.5 = 645 sats, or A$1.02 at the current market rate.
+
+The reason this is all important to understand is because the standard relay limit for a single transaction is 400 kWU (400,000 WU). This is something enforced at the relay level. The limit for an entire block is 4 MWU (4,000,000 WU), which is enforced at the consensus level. In other words, exceeding the relay limit for a single transaction does not violate consensus rules. Bitcoin Core v30 (released Oct 2025) shipped a relay policy change, removing long-standing limits around the OP_RETURN data field.
+
+---
+
+### Bitcoin Transaction Logic & Data
+
+#### OP_RETURN
+
+OP_RETURN is known as a scripting opcode. A scripting opcode is a **single command** within a script that defines the conditions and logic for spending a Bitcoin UTXO by manipulating data on a stack. They define conditions for spending bitcoins (e.g. checking signatures, checking time locks, or marking outputs as unspendable). OP_RETURN in particular creates a *provably unspendable transaction output* (UTXO) for the purpose of storing data. We'll soon learn why OP_RETURN creates *unspendable* UTXOs.
+
+#### Bitcoin Script
+
+Bitcoin Script is a simple programming language (stack based) used to define these conditions. The two essential components of a Bitcoin transaction script are ScriptPubKey and ScriptSig. The ScriptPubKey is the locking script attached to a transaction output (UTXO) that defines the conditions required to spend that UTXO. The ScriptSig is the unlocking script provided in a transaction input that offers the data (e.g. signature, public key) required to satisfy the ScriptPubKey’s conditions; it’s like the “key” to the lock. Nodes validating a transaction concatenate and execute these two scripts together. If the combined script evaluates as true on the stack, the transaction is considered valid.
+
+### Taproot, Schnorr Signatures, and Tapscript
+
+At this point we should discuss Taproot as another key feature playing an important role in this debate. Taproot was an upgrade proposed by a Bitcoin Core developer in 2018 and activated in 2021 as a non-contentious soft fork (backwards compatible) with widespread acceptance. The purpose of the upgrade was making transactions cheaper, faster and more scalable. It coalesced three technical improvements to achieve its goals. Take a look at this diagram before we move on:
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/taproot.png" alt="Taproot Upgrade" />
+  <figcaption>Figure 3 — Taproot Upgrade</figcaption>
+</figure>
+
+#### Schnorr Signatures
+
+The first of our three BIPs (bitcoin improvement proposals) are Schnorr Signatures (BIP340), which replaced the existing ECSDA signatures because they’re shorter and faster to verify. Recall that signatures are used by users attempting to spend bitcoin by proving they own the bitcoin at a particular address by signing their transaction with a *digital signature*. Schnorr Signatures also allow multiple signatures (common in multi-sig wallets) to combine into a single signature which minimises how much data is stored on-chain. 
+
+#### Merkilised Abstract Syntax Trees
+
+Merkilised abstract syntax trees (MAST) (BIP341) allow complex transaction conditions (e.g. “X amount can be spent if 2/3 keys sign the transaction”, or “the full amount is spendable after 5 months if signed by key A”) to be embedded more efficiently in the transaction. Only the spending conditions that have been met and executed are revealed to the blockchain, while other potential conditions remain hidden. This enhances privacy and further minimises how much data is stored on-chian by making complex transactions indistinguishable from simple ones. 
+
+#### Tapscript
+
+Tapscript (BIP342) is an update to Bitcoin Script which introduced new opcodes and modified existing ones to facilitate Schnorr signatures and MAST. Recall that opcodes are individual commands within a script that define the conditions and logic for spending a Bitcoin UTXO. The most notable one is OP_CHECKSIG which was modified to support verification of the new Schnorr signatures. Older ECDSA signatures are still verifiable with the legacy version of Bitcoin Script.
+
+---
+
+## Ordinal Theory, Inscriptions, and BRC-20
+
+### Ordinal Theory & Satoshi Numbering
+
+Next, we’re going to discuss ordinal theory, a “social” invention that exists off-chain, proposed by independent Bitcoin developer Casey Rodarmor. He previously worked with Chaincode Labs, a leading Bitcoin R&D centre based in NYC where he was able to contribute to Bitcoin Core in early versions around 2015. Rodarmor is a self-proclaimed “disgraced Bitcoin Core developer” because his intimate knowledge of the reference implementation is precisely what allowed him to bypass the longstanding OP_RETURN policy limit. This limit, of course, sparked our entire debate. His idea behind ordinal theory is “social” in the sense that it’s a social convention that doesn’t change the Bitcoin protocol itself. The theory focuses on the satoshi (sat), the smallest denomination of bitcoin (1 BTC = 100,000,000 sats). It assigns a unique and *sequential* number to every satoshi, based on the order in which it was mined. All sats to ever exist are numbered from 0 up to 2.1*10^15. The key insight here is that by assigning a unique number to and tracking a satoshi provides a mechanism for treating each one as a **non-fungible** item. Recall that fungibility is defined as (of a product or commodity) replaceable by another identical item; mutually interchangeable. This is purely a social layer which enables them to be collected and traded like NFTs, even though at the protocol level each sat remains technically fungible. The implications of this are really interesting.
+
+### Inscriptions and the Taproot Envelope
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/ordinals-through-time.png" alt="Ordinals Through Time" />
+  <figcaption>Figure 4 — Ordinals Through Time</figcaption>
+</figure>
+
+The technical implementation of ordinal theory gave rise to inscriptions, which are the actual content (images, text, audio) embedded on-chain and associated with a satoshi. This process exploits two key upgrades we discussed earlier: SegWit and Taproot. Recall that SegWit separated transaction signature data (witness data) from the main transaction data. It assigned a 75% discount to the witness data to incentivise adoption. Taproot made complex spending conditions look like simple transactions via MAST and Tapscript. Critically, however, it also relaxed restrictions on how much arbitrary data could be stored in a Tapscript via the witness field. Historically, Bitcoin Script had two main size restrictions for complex spending conditions. The first was a maximum stack element size of 520 bytes, a consensus rule limiting the max size of any single item pushed onto the execution stack local to the node verifying the transaction. The second was the maximum total script size of 10,000 bytes which was also enforced as a consensus rule. After the SegWit upgrade, this consensus rule was modified so the 10,000-byte **total limit** only applied to the witness script. The rationale behind Tapscript (modified Bitcoin Script) was that when validating a script, a node spends CPU time checking signatures and running other opcodes. Historically, a larger script allowed a proportionally higher probability of a DoS attack, because a miner could fill a block with one massive transaction that took too long to validate. Taproot fixed this by requiring that only the hash of the script be signed, not the whole script itself, meaning the time required for a node to check signatures and other opcodes was no longer proportional to the size of the script being executed. The developers subsequently removed the 10,000-byte witness script restriction entirely for Tapscript. The maximum size of data stored in a single Taproot script is now technically bounded by the block weight limit of 4 MWU. Because inscriptions are stored using the witness discount, a single transaction could theoretically contain nearly 4 MB of data, provided it pays the appropriate fee. Note that the 520-byte limit on singular elements within a witness script is still enforced, so any large data stored here would be in many non-contiguous chunks.
+
+Inscriptions are created using a specific Taproot script structure called an “envelope”, which uses already known standard opcodes. The data (image, text, audio, etc.) is wrapped between the opcodes OP_FALSE, OP_IF and OP_ENDIF. This structure causes the script to never actually execute because it began with OP_FALSE, and the data is therefore pushed to the blockchain and permanently stored without interfering with the transaction’s validity or creating additional errors.
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/envelope.gif" alt="Tapscript Envelope" />
+  <figcaption>Figure 5 — Tapscript Envelope</figcaption>
+</figure>
+
+The data itself is pushed onto the stack using any of the existing OP_PUSH opcode variants. Critically, because inscriptions are stored in witness data, they’re less friendly to node resources than OP_RETURN. Pruned nodes can drop witness data after some time, but full nodes must maintain this data forever. Because inscriptions are large (up to 4 MB) and cheap (75% witness discount), they can rapidly increase the blockchain size, making running a full node a less accessible option for some. The data stored in an OP_RETURN output transaction is part of the main script, not the witness field. It absolutely contributes to archival bloat but does not abuse and does not hide within the discounted witness section. See below a plot describing the rate of blockchain growth, noticing the subtle shifts in slope (rate of growth).
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/blockchain-size.png" alt="Blockchain Size" />
+  <figcaption>Figure 6 — Historical Blockchain Size (GB)</figcaption>
+</figure>
+
+The archival bloat described above is a problem, but not the *main* problem. The far more severe and critical network issue is UTXO bloat. If the UTXO set grows too large, then the RAM and processing requirements to run a full node increase significantly. This type of bloat is accelerated by the adoption of ordinal theory and inscriptions. See below the historical size of the UTXO set.
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/utxo-set.png" alt="UTXO Set Size" />
+  <figcaption>Figure 7 — Total UTXOs (Count)</figcaption>
+</figure>
+
+This prices out operators running on low-cost hardware such as a Raspberry Pi (my current node setup) which threatens higher node centralisation. The two methods differ in how politely they provide means to embed data in the archival blockchain. In polite fashion, an OP_RETURN output is provably unspendable, so a node will remove it from its active UTXO set and the output has zero long term impact on node resources. Inscriptions, tied to satoshis, impolitely exist in a spendable UTXO. To sell or transfer the inscription, the owner will often isolate it in its own single-satoshi UTXO. This creates a myriad of tiny, low-value outputs referred to as "dust" that are **spendable** and hence permanently added to the active UTXO set. The idea of inscriptions is such that they’re held as collectibles, meaning they'll bloat the live database as long as this idea is popular.
+
+### BRC-20 and the Acceleration of UTXO Bloat
+
+Now, if ordinal inscriptions (NFTs) created the UTXO bloat issue, the BRC-20 protocol (fungible tokens) made the issue much, much worse. Think of BRC-20 as a **type** of inscription. The BRC-20 protocol is a social protocol built on top of ordinals by a developer named “Domo”, allowing for the creation, minting, and transferring of fungible tokens (e.g. meme coins) on Bitcoin. Because Bitcoin doesn't natively support smart contracts, BRC-20 works by inscribing small JSON files into witness data to represent a token command. These commands are formatted to be read by external, off-chain BRC-20 indexing software which facilitates the fungible token function. To better understand the impact of BRC-20 we’ll briefly explore the types of token commands:
+
+The **deploy** command is the initial creation command. The first valid inscription for a given ticker is considered the official one. Say we wanted to create "DOGE" on BRC-20; the command would look like:
+
+```json
+{ "p": "brc-20", "op": "deploy", "tick": "doge", "max": "21000000", "lim": "1000" }
+```
+
+The **mint** command is used to issue new tokens, provided the maximum supply has not been eclipsed. The tokens are assigned to the address that receives the inscribed UTXO. An example might look like:
+
+```json
+{ "p": "brc-20", "op": "mint", "tick": "doge", "amt": "500" }
+```
+
+The **transfer** command allows the movement of tokens between users. It’s the most inefficient step because it requires **two** transactions take place. First, the sender creates a transfer inscription (transaction 1) which allocates the balance to a specific UTXO in the sender's own wallet. The sender then broadcasts a standard Bitcoin transaction to move the UTXO to the recipient's address. It's simply the movement of the artefact created in step 1. An example of a transfer inscription may look like:
+
+```json
+{ "p": "brc-20", "op": "transfer", "tick": "doge", "amt": "100" }
+```
+
+According to a 2024 article by Hiro Systems, ~90% of ordinals activity is the **minting** of BRC-20 tokens. This caused the UTXO set to grow at an unprecedented rate. Secondly, at the time of Taproot’s release, this massive demand for "junk" inscriptions overloaded the mempool and drove transaction fees over 10x higher than average for the following 8 months until activity on-chain died down. Activity since then has been relatively low aside from a moderate increase across another 8-month period from late 2023 to mid-2024. See below some data on BRC-20 volume since ealry 2023:
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/brc20-total.png" alt="UTXO Set Size" />
+  <figcaption>Figure 8 — Total BRC-20 Volume (Count)</figcaption>
+</figure>
+
+Finally, the use of centralised indexers to understand BRC-20 isn’t necessarily a technical network threat as it occurs off-chain, but it does create a centralised point of failure for a system that isn’t designed to operate on Bitcoin. This is inherently antithetical to Bitcoin’s design and further distorts the economics and purpose of on-chain activity. Bitcoin Core v30 was an attempt to at least steer the activity onto safer OP_RETURN rails which don’t bloat the critical UTXO set.
+
+---
+
+## Relay Policy: `datacarriersize` and Bitcoin Core v30
+
+Finally, the last piece of background we need to understand is `datacarriersize`, which is a specific *policy setting* used by Bitcoin full nodes to manage what data they’re willing to relay. It is not an instruction within Bitcoin Script, nor is it a consensus rule. It’s a filter that node operators can configure. Historically nodes would only relay transactions that used OP_RETURN to store a maximum 80-byte payload. Even if an OP_RETURN transaction was valid under consensus rules, a node with the `datacarriersize` policy enabled would refuse to relay it should it exceed the configured limit.
+
+The recent update to Bitcoin Core deprecated this strict 80-byte limit by raising the default `datacarriersize` to 100,000 bytes. Consider taking a look at the <a href="https://github.com/bitcoin/bitcoin/pull/32359" target="_blank" rel="noopener noreferrer">pull request</a>. It was not previously possible to set `datacarriersize` to 100,000 bytes before Bitcoin Core v30 (it could be configured lower, but not higher than 80 bytes). The developers reasoned that the original 80-byte policy became obsolete when people found other methods of embedding large amounts of data without using the OP_RETURN mechanism. The change aimed to formalise a more efficient and prunable way to handle this data. When we say the change made the data handling more “prunable”, we’re referring to the nature of OP_RETURN as a scripting opcode that creates a **provably unspendable** transaction output. Because the output is unspendable, it won't stay the UTXO set. Upon confirmation, the transaction data and its output serve no further purpose for transaction validation, so nodes can safely discard (prune) this specific output from the *active* UTXO set. The OP_RETURN data remains in the archival blockchain but doesn’t persist in the fast-access UTXO set. Interestingly, there was a <a href="https://github.com/bitcoin/bitcoin/pull/32406" target="_blank" rel="noopener noreferrer">draft</a> to deprecate/remove the `datacarriersize` and `datacarrier` policy settings, but the final release kept configurability after pushback. The `datacarrier` policy setting is simply an on/off toggle for enforcing a limit altogether.
+
+Lastly, some non-relevant but mentionable changes that occured in v30 included **decreasing** the minimum relay fee and minimum block transaction fee. The minimum relay fee is a local node policy that sets the minimum fee rate (in sats/vB) to be accepted into that node’s mempool and relayed to its peers. The minimum block transaction fee is a separate policy for miners that sets the minimum fee a miner will accept when selecting transactions from its mempool to build a new block template. The real contentious change, however, remains with the decision to relax restrictions on `datacarriersize`.
+
+---
+
+## Arguments Supporting v30
+
+This side is largely supported by the Bitcoin Core developers and those developing new protocols on top of Bitcoin. The changes are framed as a pragmatic and necessary response to an existing issue. 
+
+### The 80-Byte Limit Was Already Functionally Dead
+
+Firstly, proponents argue that the 80-byte datacarriersize policy, while well intentioned, was already dead. The impolite workaround discovered thanks to ordinals made it possible to embed large amounts of data in the witness field of a transaction. They argue that developers had already been building protocols on top of Bitcoin that aimed to circumvent the 80-byte policy. It was henceforth seen as ineffective at preventing on-chain data storage and seen as a force pushing developers to use a problematic and more harmful approach. Therefore, the 80-byte limit was seen as not only ineffective and obsolete, but actively harmful to the network.
+
+### Harm Reduction
+
+The main argument about pragmatic harm reduction is founded in the assumption that ordinals, inscriptions, and the activities they facilitate are inherently harmful and therefore must be stopped by being steered onto less harmful rails. The impolite inscription method creates massive UTXO bloat and increases the RAM and processing requirements for all full nodes (threatening decentralisation). The polite OP_RETURN solution is a provably unspendable transaction output that does not balloon the active UTXO set. By raising the `datacarriersize` limit with a policy level change, Core developers are providing protocol designers with the ability to use this solution. In a 2024 interview with Peter McCormack, ordinals creator Casey Rodarmor said inscriptions are “interesting” and that he “likes” them, but says fungible tokens are “the worst”. He publicly called BRC-20s “inefficient” and pointed out the issue of UTXO bloat, leading him to propose his own protocol called **Runes** which are explicitly designed to be a UTXO-friendly fungible token protocol politely utilising OP_RETURN.
+
+### Relay-Policy Mismatch is Harmful
+
+Furthermore, the 80-byte limit was enforced by a policy that “never really had any real power”. This is an argument used to highlight that miners were already ignoring it. The limit was set by nodes which exercised the policy by default which was not a consensus rule. Miners, if economically rational, were (and are) free to include any consensus-valid transactions in their block templates. Additionally, any users with enough incentive (e.g. a BRC-20 service) could bypass the 80-byte public mempool limit by sending their (usually larger) transactions directly to a miner who would happily include them as the fee being offered would compensate them for the block space. The popular example used here is <a href="https://slipstream.mara.com/" target="_blank" rel="noopener noreferrer">MARA Slipstream</a>, a “direct transaction submission poral” offered by MARA Pool, the mining pool owned and operated by MARA Holdings. They’ve currently mined ~4% of all blocks in the last week (at the time of writing) which implies it would take ~4 hours for a direct submission to find its way into a block.
+
+Extending the points above, proponents argue that when a node’s relay policy results in a different local mempool to one which a miner would accept, it harms both the node and the network. If your node rejects “spam” that miners are accepting, then your node’s fee estimation algorithms will be inaccurate, forcing reliance upon centralised third-party block explorers such as <a href="https://mempool.space/" target="_blank" rel="noopener noreferrer">mempool.space</a>. Moreover, when a node receives a new block, it uses Compact Block Relay (BIP152). This implementation allows your node to check its local mempool for the transactions which were mined and included in the block, in which case it can validate the block almost instantly. However, if the block is full of “spam” transactions which your node rejected, it must stop and download them which can slow down network-wide block propagation. Lastly, large miners gain a tiny advantage over small miners due to this time delay. Large miners receive the new block quickly and immediately validate it because they tend to accept non-standard transactions. Smaller miners stop to download the spam that it previously rejected. The small miner loses several seconds it could have spent mining which increases the probability of the small miner mining an orphaned block that'll be rejected by the network.
+
+### CSAM Risk Always Existed
+
+Another argument I want to address revolves around CSAM (child sexual abuse material) risk. Running a full node might expose operators to criminal liability for hosting illegal content. Core supporters say that the risk already existed as CSAM could be embedded using the witness field (inscriptions) or by submitting transactions directly to miners (bypassing `datacarriersize`). The v30 policy change doesn’t mess with consensus rules, so the limit increase doesn't *materially* increase the risk that such content enters the chain. Legally, Core supporters note that running v30 makes the node operator “complicit” in verifying that transaction data follows consensus rules, not in possessing or distributing said transaction data. No court has ever held that running a full node constitutes CSAM possession or distribution, suggesting that these risks may be overstated. The legal defence hinges on the fact that the node operator lacks knowledge or control over this data as the software is a background and automatic chain validation process. 
+
+Furthermore, being able to prune OP_RETURN means transactions can be validated and immediately dropped from the active UTXO set. It’s important to note, however, that this reduces the status of the node from a full node to a pruned node. Lastly, Core developers have noted that imposing social or legal preferences on certain transactions violates Bitcoin’s censorship resistant nature. Adam Back, founder of Blockstream, notes the v30 change is “pro-censorship resistance” that supports the principle of “transaction inclusion based purely on economic incentive”. Attempting to filter content could lead to a back and forth between bad actors who may try and disguise illicit data as regular monetary transactions to circumvent further policy changes. This would result in an indistinguishability between standard and illicit transactions, potentially increasing network fragility.
+
+### Block Space Is a Free Market
+
+The final argument is that block space is priced in a free market in which spam is subjective. This is a philosophical argument that leans on whether you consider spam subjective or objective in its definition. Proponents for the OP_RETURN change argue that if a user is willing to pay the market rate for block space which their transaction will occupy, then they’re entitled to create that transaction. Some think BRC-20 inscriptions are junk, whereas others see them as fungible tokens. The only objective filter in this context is the free market.
+
+---
+
+## Arguments Against v30
+
+This side is largely supported by long-time Bitcoin maximalists and independent protocol devs prioritising network decentralisation. The changes are framed as an unnecessary risk that betray the original purpose of Bitcoin as a monetary network.
+
+### Bitcoin’s Original Monetary Purpose
+
+Firstly, the primary philosophical argument is that Bitcoin was created as a “peer-to-peer electronic cash system”, not a decentralised file storage system. Core v30 opponents believe every byte of block space should be reserved for monetary purposes (transferring financial value). The change thereby represents an active endorsement that changes Bitcoin’s identity. Raising the `datacarriersize` policy limit from 80-bytes to 100,000 bytes is essentially welcoming spam into the network. Luke Dashjr (maintainer of the Bitcoin Knots client) rejects the free-market argument and contends that spam is an *objective* abuse of the network and that policies should be in place to filter it, just as email servers filter spam. Dashjr and other critics see the v30 change as an abdication of this responsibility.
+
+### Archival Bloat Issue
+
+Furthermore, the main technical argument against v30 is that it replaces the issue of UTXO bloat with an equally dangerous one. Although OP_RETURN data is prunable from the live UTXO set, it’s permanently stored on-chain. The risk is that a flood of non-financial data will balloon the total blockchain size into many terabytes (currently 700 GB at the time of writing), imposing larger costs and time required for a new user to perform an initial block download (IBD). Personally, I estimated a couple years ago that I'd likely have to upgrade the 2TB SSD on my full node sometime around 2030, but if that date edges closer, I might be mildly annoyed.
+
+### Legal Liability and CSAM
+
+Moreover, the most powerful real-world argument is perhaps the way in which the policy change is not just technically risky, but legally reckless. This point has been championed by prominent figures with comprehensive domain knowledge, such as computer scientist and legal scholar Nick Szabo and former Wall Street investor and author Matthew Kratter. What happens when someone uses the new 100kB OP_RETURN field to embed CSAM or state secrets onto the blockchain? The argument is that if this was done with inscriptions, the illicit data is obfuscated and fragmented in witness data. The v30 change creates a **standardised**, **contiguous** and **parseable** field for such data, weakening the legal defence that node operators had no idea it existed. There is a critical detail to note in the contrast between knowingly hosting data vs unknowingly relaying data. Opponents are indicating the change shifts a node’s legal status from a passive conduit to an active publisher who's knowingly downloading, distributing, and possessing illicit material. The fear of criminal liability alone could be the biggest threat to decentralisation. Existing node operators might be scared into shutting down, while potentially new operators might not establish themselves.
+
+### Corporate Capture and Governance Concerns
+
+Finally, the change invites a **political** argument around the corporate capture of Bitcoin Core development and who exactly benefits. Opponents highlight that the entities who benefit the most from these large and cheap on-chain storage methods are the corporations building layer 2 protocols on top of Bitcoin. There's a suspicion that the policy wasn’t purely technical, but influenced by these corporate interests, signifying a move away from Bitcoin’s “peer-to-peer cash” foundations toward data-accessibility layers for venture capital to profit upon. Following this, there’s been some loss of faith in Core leadership, notably, Dennis Porter (CEO of the Satoshi Action Fund) publicly stating that he’d raised over $200,000 USD for Core developers but would no longer support Core development due to the policy decision. Additionally, Jason Hughes (vice president of the Ocean mining pool) stated that developers had made a “corporate style decision, disregarding user positions”, warning that a “non-Bitcoin project” influenced the direction taken. To conclude, Kratter has publicly stated that ignoring community sentiment around the update would result in Bitcoin Core losing market share to <a href="https://github.com/bitcoinknots" target="_blank" rel="noopener noreferrer">Bitcoin Knots</a>, the second most popular Bitcoin client maintained by Luke Dashjr which does not relay transactions with an OP_RETURN larger than 80-bytes. Since this debate became public, Knots has been gaining significant popularity, although its growth has recently stagnated after v30 was released.
+
+<figure style={{ textAlign: 'center' }}>
+  <img src="/images/opreturn/bitcoin-clients.png" alt="Bitcoin Client Popularity" />
+  <figcaption>Figure 9 — Bitcoin Client Popularity (Count)</figcaption>
+</figure>
+
+### Failure of Social Consensus
+
+To conclude, the process by which the change was made is viewed as a failure of social consensus. The Core development team pushed through what is an undeniably contentious and non-trivial change as a mere “policy default” without majority buy-in from the broader community. Many feel a breach of trust; a lost faith in Bitcoin developers to act as conservative representatives of the protocol and avoid stirring up controversies. The fact that this change was pushed despite widespread, vocal opposition is evidence that the Core development process has become centralised and unaccountable.
+
+---
+
+## What This Means for Bitcoin
+
+This update is going to have a tangible impact on the network, as well as potentially philosophical implications. We’re going to take a brief look at the **short-term** and **long-term** implications of the policy change, assuming it sticks, by projecting the arguments discussed forward.
+
+### Short-Term Impact
+
+The first obvious impact is the green light given to projects built specifically to operate using the new OP_RETURN limits, such as Rodarmor’s Rune protocol which was built in anticipation. It should hopefully serve to reduce the rate of UTXO bloat should demand for fungible tokens persist. The next change could potentially be the form this bloat takes. As discussed, reduction in UTXO bloat by moving data storage away from witness data and into OP_RETURN means the archival blockchain will have to take on this load, potentially increasing the disk space required of full nodes. Thirdly, we might see block space facing demand from three angles, namely: financial transactions (intended), impolite data storage (inscriptions) and polite data storage (OP_RETURN based protocols). The increased competition could lead to higher and more volatile transactions fees, although this is yet to be seen. Finally, the fragmented policy split may continue to widen as the percentage of nodes running Bitcoin Knots continues to increase over time. This would mean that not all nodes see the same mempool, a technical misalignment not seen on this scale since the Blocksize Wars of 2017.
+
+### Long-Term Impact
+
+Firstly, if the size of the archival blockchain balloons over the next decade or so the consequences of the rate of increase relative to previous expectations could mean the blockchain’s total size may outpace the rate at which storage becomes cheap enough for the average node operator. Another worry is that we could see the roots of Bitcoin’s solidification as a data-layer, as opposed to a monetary layer. This is unlikely to happen, although there is a non-zero risk that Bitcoin’s primary use case sees a philosophical shift. This would almost surely attract new venture capital and other L2s into the space looking to use Bitcoin as a base layer for their own tokens and applications. Finally, some have argued that the fee market might find a permanently higher price floor, pricing out the “P2P cash” use. However, I must interject and highlight that Bitcoin is absolutely capable of scaling with the value of transactions, not necessarily volume. The base layer is appropriately primed to allow for high value settlement transactions to occur at an appropriate frequency for large institutions, relegating the responsibility of “P2P cash” to existing L2s, namely, the <a href="https://en.wikipedia.org/wiki/Lightning_Network" target="_blank" rel="noopener noreferrer">Lightning Network</a>. 
+
+---
+
+## What This Means for You
+
+### The Political and Legal Risk Scenario
+
+The first risk I want to discuss deserves its own section as it’s arguably the most potent scenario discussed by v30 opponents. Beyond the immediate impacts, the policy change introduces a political risk that affects every network participant. Opponents argue that the standardisation of data embedding needlessly invites a malicious actor to use the new 100 kB OP_RETURN field to permanently embed universally illegal content (most notably, CSAM) on-chain. The problem is that the content is no longer fragmented or hidden in witness data; it now exists as a contiguous 100 kB file stored in the archival chain of any node operator. This could potentially trigger an international crisis in which jurisdictions may argue a legal basis to threaten node operators with criminal prosecution for possession and distribution of CSAM. Exchanges may be threatened to delist Bitcoin, while miners similarly face legal threats. The Bitcoin community would be forced to choose between its two core principles which have been at the forefront of this divide: do we uphold immutability and censorship resistance, watching on as node operators face arrests and the network’s legal viability degrades, or do we censor the chain and actively intervene to remove the content (e.g. through a block reorganisation), eroding Bitcoin’s fundamental value proposition? The fear is that this pressure would lead to a **non-contentious** (proactive) or **contentious** (reactive) soft fork. 
+
+#### Non-Contentious Soft Fork
+
+The non-contentious soft fork would result in any client (e.g. Core, Knots, etc.) including a new policy update that filters out CSAM. This would happen before any CSAM is embedded into the chain as a proactive measure. This client would refuse to relay or mine transactions that trigger the filter. Nodes would have to update to or run this client before any CSAM is embedded on-chain. This is technically non-contentious because it would not result in a chain split. Philosophically it’s still incredibly contentious because the network shifts from neutral and permissionless to pro-censorship. A good analogy is that your email provider adds a new spam filter; so, while you still receive all your valid emails, the provider now actively blocks and refuses to deliver emails that contain specific content. The system doesn’t break per-se, but its core principle of delivering all mail has fundamentally changed. 
+
+#### Contentious Soft Fork (USAF)
+
+Alternatively, the network might be forced to take reactive precautions to censor past illicit content already confirmed within a block. It might be the case that governments and law enforcement pressure the community to remove the block, but it’s likely that a subset of the community itself will provide or add to this pressure. A new client would require development in which a consensus rule is added to reorganise the blockchain to invalidate the offending block. This would only invalidate a *specific*, previously valid block containing the illegal content. This is called a user activated soft fork (UASF) and would result in a chain split with a **censored chain** (new rule) followed by participants running the update, and an **original chain** (old rule) followed by participants refusing to censor the past. 
+
+The difference between a USAF and a **hard fork** is that a hard fork would be a forward-looking measure hoping to change a consensus rule (e.g. prohibiting all OP_RETURN transactions). It would force all old software to recognise the new chain’s blocks as invalid, causing a different kind of chain split. In the case of a USAF, Kratter argues that government pressure would force large mining pools and organisations to mine on the censored chain, in which pools overseas (namely, China) would follow suit. A good analogy is a bank being ordered by a government to declare a certain transaction never happened in which half of the bank’s branches agree and rewrite the ledger, while the other half refuse. Suddenly you have two different banks operating on fundamentally different customer records.
+
+### For the Savers
+
+If no fork occurs, illicit content is embedded on-chain, and the community choses to do nothing, your funds are technically safe, but the network itself could land in a legal grey area in the eyes of your local jurisdiction. Be prepared for significant price volatility and political contention as Bitcoin weathers yet another storm. If a non-contentious soft fork occurs, we could consider this the lowest risk scenario in terms of legality because there won’t be a chain split. However, this would explicitly shatter one of Bitcoin's core tenets as a neutral, censorship resistant network (in my opinion). It stands to reason that Bitcoin would hereby be considered as having suffered from **censorship**. It stands to reason that the fundamental value proposition is brought into question under these conditions. 
+
+If a contentious USAF occurs, your coins are instantly duplicated onto a new, competing chain. You become critically vulnerable to a “replay attack” where spending on the censored chain could result in accidental spends on the original chain. Crucially, you should *suspend all transactions immediately* until protections are put in place by wallet software providers or exchanges, or until the network resolves the contention. You will have the option in this scenario to sell either side of the split if you're able to liquidate your assets on either chain. This is essentially an economic voting mechanism and is incredibly risky because you may end up on the wrong side. To minimise risk I would personally take no action under such circumstances.
+
+### For the Node Runners
+
+If no fork occurs, there exists a risk that you're now knowingly running software that possesses and propagates data deemed highly illegal (should this risk materialise). You may face personal legal liability should there exist a case against node operators amidst the technical nuances. You have a decision to either shut down the node, run it anonymously via Tor, or manually configure the node to filter the data despite the risk of splitting from the network. If a non-contentious soft fork occurs, there is minimal legal risk and the node will not split from the network, but you will also not be participating in the new filtering policy. 
+
+![Node Operator Placeholder](/images/opreturn/node.jpg)
+
+If you do nothing, your node will remain backward compatible, but you reserve the right to upgrade your client to adopt the new policy and support the fork while reducing any potential legal exposure. If a USAF occurs, your node becomes a single vote in a political and economic war of sorts. You are forced to choose a side because the node cannot run both versions of the chain. The client software you run will determine which Bitcoin you decide to help secure. It’s recommended to actively decide which chain you will support. This is a personal and philosophical decision that no one should make for you that has direct and immediate implications for the entire network.
+
+---
+
+## Conclusion
+
+We’ve just explored a highly controversial debate that’s divided much of the community. Remember that OP_RETURN is not just a technicality, it’s a feature that’s shone a light on Bitcoin’s philosophical identity, how it’s governed, and how it looks to be evolving. The stakes are such; we’re at an important crossroads where Bitcoin’s original intentions as a monetary base layer are contending with censorship resistance and philosophical drift. 
+
+#### Author's Comments
+
+I’m going to make a personal comment on where I sit after having done all the research for this article and considering the arguments from both sides. I feel as though UTXO bloat is a more critical issue than archival bloat when it comes to shifting from inscriptions-based data storage to OP_RETURN based data storage, although I would sincerely prefer that the network be used exclusively for monetary purposes as a base layer settlement network rather than a decentralised database. I suspect that our world has much more use and future demand for a store-of-value monetary technology than a data-storage technology. The social, political, and economic problems Bitcoin has the potential to solve are born out of its use as a censorship resistant and inflation resistant money, not data. 
+
+Additionally, because potentially illicit material is able to be stored on-chain in contiguous form via the polite OP_RETURN vector, I’m mildly concerned about potential exposure to legal risk. But again, it would be ideal if we didn’t have to find a place for spam within our network and could unanimously agree on a way to keep Bitcoin aligned with its intended monetary purpose. I once gave a <a href="https://ethancolgan.me/blog/2025-08-31-timestamping-enlightenment" target="_blank" rel="noopener noreferrer">talk</a> in which I discussed the value of being able to store arbitrary data on-chain by hashing any sized input so it could fit within the previous 80-byte limit placed on OP_RETURN. The circumstances have since changed, and although I acknowledge the value of immutable data-storage, I only hope that Bitcoin stays focused on reshaping our economy.
+
+I want to briefly comment on the governance risk as well, because I think the way the v30 change was pushed through is a bigger red flag than the change itself. I believe there was pretty clear pushback from a subset of the community, whether a majority or not, that highlights potential ulterior motives held by the development team. The growth of Bitcoin Knots in direct response is clear evidence to me that many node-operators believe their concerns were not addressed. The public discussion around this debate has been very disappointing as well, with personal attacks coming from both sides. It feels as if a bunch of immature schoolchildren are averse to exercising a resonable debate in favour of cheap ad hominems.
+
+All things considered, I think the resulting governance posture down-plays a lot of the risks and has stolen the spotlight away from other important conversations concerning the evolution of the network from where we’ve found ourselves now. Bitcoin has long been viewed, at least by me, as a beautiful system whose immutability is held in high regard, as it’s this very attribute which I believe makes it perfectly suited to play the role as a geopolitically risk neutral, censorship resistant alternative to USD hegemony and fiat capitalism. Given the governance risk, I think the client diversity we’ve experienced is healthy and I would be happy to see it persist for the foreseeable future. I also support users who wish to run their own nodes with custom policies as wisdom is often always found in numbers. Personally, I’m going to sit back and watch what happens with a keen eye. Should the network experience some kind of fork, I will likely also do nothing while paying attention to how the situation evolves re: network status and operational legality. Interestingly, there exist <a href="https://beta.predyx.com/market/will-the-reduce-data-temporary-soft-fork-be-consensus-enforced-on-the-most-work-bitcoin-chain-tip-by-march-1st-2026-1762275376" target="_blank" rel="noopener noreferrer">prediction markets</a> for the likelihood of a soft-fork.
+#### Final Statement
+
+I’ve spent a considerable amount of time researching for this article and by doing so, I’ve ironically re-accentuated my introductory point about information overload in a network of information flooded by noise. This article has been my attempt at verifying information, something I consider a personal responsibility. I’m reminded that Bitcoin is a test of sovereignty, not in the financial sense, but in a moral and intellectual one. Deciding which risks matter the most, which values we defend, and what constitutes misuse of a global protocol is a burden that sits with each and every participant. In a world drowning in noise, Bitcoin highlights the discipline we so desperately need: verify before we trust and think before we relay; prioritise the ideas that genuinely add value to our chain of understanding. Bitcoin will almost certainly make it out of this alive, because Bitcoin is not just a protocol, it’s a collection of individuals willingly fighting to preserve that ethos.
