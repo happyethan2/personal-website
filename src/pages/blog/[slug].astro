@@ -5,6 +5,7 @@ import Base from "@/layouts/Base.astro";
 import { getCollection } from "astro:content";
 import TagChip from "@/components/TagChip.astro";
 import PostMeta from "@/components/PostMeta.astro";
+import { getReadingTime } from "@/lib/posts";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -14,12 +15,15 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { data } = post;
 const { Content } = await post.render();
+const readingTime = getReadingTime(post.body);
 ---
 <Base title={`${data.title} - Blog`} description={data.description}>
   <article class="prose-custom prose-p:text-justify">
     <h1 class="mb-1">{data.title}</h1>
     <div class="text-sm text-slate-400 mb-6 flex items-center gap-2">
       <PostMeta date={data.date} />
+      <span class="text-slate-700">|</span>
+      <span>{readingTime} min read</span>
       <span class="text-slate-700">|</span>
       <div class="flex gap-1.5 flex-wrap">
         {data.tags?.map((t) => <TagChip tag={t} />)}
